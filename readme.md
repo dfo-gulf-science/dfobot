@@ -32,4 +32,13 @@ The model trains on otoliths from both species simultaneously to maximize the ov
 
 
 # October 2025:
-Switch to using yellowtail dataset, ~10000 images across 20 years of RV survey results.  
+Switch to using yellowtail dataset, ~10000 images across 20 years of RV survey results.
+
+
+# Creating a new CNN:
+ - Preprocess images into single raw dir (crop_and_isolate).  Each image should have a UUID filename
+ - Create csv of labels, one row per UUID.
+  - Create a train/test folder (train_test_splitter)
+
+ 
+  

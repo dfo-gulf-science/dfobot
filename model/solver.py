@@ -237,8 +237,8 @@ def run_solver(device, plots=False, all_layers=False, config_dict=None, save_cou
     for key, value in config_dict.items():
         print(f"{key}: {value}")
 
-    # model_conv = get_base_model(device, all_layers)
-    model_conv = get_augmented_model(device, all_layers)
+    model_conv = get_base_model(device, all_layers)
+    # model_conv = get_augmented_model(device, all_layers)
     criterion = nn.MSELoss()
 
     checkpoint = None
