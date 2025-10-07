@@ -8,8 +8,8 @@ import csv
 # Directories
 IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw/"
 
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/labeled/"
-CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/labels.csv"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/classed/"
+CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/classes.csv"
 
 # Create out directory if it doesn't exist
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -36,18 +36,20 @@ class ImageReviewApp:
         self.button_frame.pack()
 
         self.good_button = tk.Button(self.button_frame, text="Good (G)", width=10,
-                                     command=lambda: self.record_response("Good"))
+                                     command=lambda: self.record_response("0"))
         self.good_button.pack(side=tk.LEFT, padx=10)
 
-        self.bad_button = tk.Button(self.button_frame, text="Bad (B)", width=10,
-                                    command=lambda: self.record_response("Bad"))
+        self.bad_button = tk.Button(self.button_frame, text="Cracked (C)", width=10,
+                                    command=lambda: self.record_response("1"))
         self.bad_button.pack(side=tk.LEFT, padx=10)
 
         self.undo_button = tk.Button(self.button_frame, text="Undo (U)", width=10, command=self.undo_last)
         self.undo_button.pack(side=tk.LEFT, padx=10)
 
-        self.root.bind('<g>', lambda e: self.record_response("Good"))
-        self.root.bind('<b>', lambda e: self.record_response("Bad"))
+        self.root.bind('<g>', lambda e: self.record_response("0"))
+        self.root.bind('<c>', lambda e: self.record_response("1"))
+        self.root.bind('<d>', lambda e: self.record_response("2"))
+        self.root.bind('<t>', lambda e: self.record_response("3"))
         self.root.bind('<u>', lambda e: self.undo_last())
 
         self.load_next_image()
@@ -77,10 +79,11 @@ class ImageReviewApp:
         self.progress_label.config(text=f"Image {self.current_index + 1} of {self.total_images}")
 
     def record_response(self, response):
-        filename = self.image_files[self.current_index].split(".")[0]
+        uuid = self.image_files[self.current_index].split(".")[0]
+        filename = self.image_files[self.current_index]
         with open(CSV_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([filename, response])
+            writer.writerow([uuid, response])
 
         src = os.path.join(IN_DIR, filename)
         dst = os.path.join(OUT_DIR, filename)

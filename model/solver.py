@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from torch import nn, optim, distributed
 from torchvision import models
 
-from model.model_utils import get_dataloaders, get_base_model, get_augmented_model
+from model.model_utils import get_dataloaders, get_base_model, get_augmented_model, get_classifier_model
 
 """
 SHAMELESSLY copied and modified from the eecs-498-007 assignment code.
@@ -92,7 +92,7 @@ class Solver(object):
 
         output = self.model(images, data)
 
-        loss = self.loss_function(output[:, 0], labels)
+        loss = self.loss_function(output, labels)
         self.optimizer.zero_grad()
         loss.backward()
 
@@ -119,10 +119,10 @@ class Solver(object):
             "val_acc_pm_history": self.val_acc_pm_history,
         }
         filename = "%s/epochs/epoch_%d.pkl" % (self.log_dir, self.epoch)
-        if self.verbose:
-            self.print_and_log('Saving checkpoint to "%s"' % filename)
-        with open(filename, "wb") as f:
-            torch.save(checkpoint, f)
+        # if self.verbose:
+        #     self.print_and_log('Saving checkpoint to "%s"' % filename)
+        # with open(filename, "wb") as f:
+        #     torch.save(checkpoint, f)
 
 
     def check_accuracy(self, dataloader, num_samples, window=0):
@@ -151,12 +151,15 @@ class Solver(object):
             labels = labels.to(self.device)
 
             scores = self.model(images, data)
-            y_pred.append(scores[:, 0])
+
+            y_pred.append(torch.max(scores, 1)[1])
             y_true.append(labels)
 
         y_pred = torch.cat(y_pred)
         y_true = torch.cat(y_true)
-        acc = ((y_pred - y_true).abs().int() <= window).to(torch.float).mean()
+
+        # acc = ((y_pred - y_true).abs().int() <= window).to(torch.float).mean()
+        acc = torch.sum(y_pred == y_true).to(torch.float).mean()
         return acc.item()
 
 
@@ -187,7 +190,9 @@ class Solver(object):
                 output = self.model(images, data)
                 print(output)
                 for image_index in range(images.size(0)):
-                    prediction = output[:, 0][image_index]
+                    #  handles duplicate uuid case, don't need it for classifier
+                    # prediction = output[:, 0][image_index]
+                    prediction = output[image_index]
                     loss = self.loss_function(prediction, labels[image_index])
                     loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, uuids[image_index]))
 
@@ -203,9 +208,11 @@ class Solver(object):
 
         # Save images
         for idx, (loss, img, prediction, uuid) in enumerate(highest_losses):
-            save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
         for idx, (loss, img, prediction, uuid) in enumerate(lowest_losses):
-            save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
 
         return
 
@@ -326,9 +333,13 @@ def run_solver(device, all_layers=False, config_dict=None, load_checkpoint=None)
 
 
 
-    model_conv = get_base_model(device, all_layers)
+    # model_conv = get_base_model(device, all_layers)
+
+    model_conv = get_classifier_model(device, all_layers)
+    criterion = nn.CrossEntropyLoss()
+
     # model_conv = get_augmented_model(device, all_layers)
-    criterion = nn.MSELoss()
+    # criterion = nn.MSELoss()
 
 
     # use checkpoint from previous run?

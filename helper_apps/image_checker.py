@@ -8,7 +8,7 @@ import model.solver as solver
 
 
 IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
-MODEL_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/052__2025-10-07/solver.pt"
+MODEL_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/015__2025-10-07/solver.pt"
 DEVICE = "cuda:1"
 
 class ImageChecker:
@@ -54,9 +54,12 @@ class ImageChecker:
         input_tensor = self.transform(pil_img).unsqueeze(0).to(self.device)
         with torch.no_grad():
             output = self.model(input_tensor)
-            prediction = output.item()
+            print(output)
+            labels = ["Good", "Crack", "Crystal", "Twin"]
+            prediction = labels[int(torch.max(output[0], 0)[1].item())]
 
-        self.pred_label.config(text=f"Predicted Value: {prediction:.4f}")
+
+        self.pred_label.config(text=f"Predicted Value: {prediction}")
 
     def next_image(self, event=None):
         self.index = (self.index + 1) % len(self.image_paths)

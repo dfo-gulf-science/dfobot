@@ -1,5 +1,6 @@
 import os
 
+from fontTools.misc.classifyTools import Classifier
 from torch import nn, optim
 from torch.nn.functional import relu
 from torch.utils.data import Dataset
@@ -15,7 +16,8 @@ import torch
 # METADATA_CSV_PATH = "/home/stoyelq/Documents/dfobot_data/metadata/metadata.csv"
 # METADATA_COLUMNS = ['month', 'is_male', 'is_female', 'is_unknown', 'is_plaice', 'is_herring']
 
-METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/labels.csv"
+# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/labels.csv"
+METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/oto_classifier/labels.csv"
 METADATA_COLUMNS = ['result', 'result_second' ]
 
 class ImageFolderCustom(Dataset):
@@ -30,7 +32,7 @@ class ImageFolderCustom(Dataset):
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
         out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
-        result = torch.tensor(float(metadata_row["result"]))
+        result = torch.tensor(int(metadata_row["result"]))
         uuid = metadata_row["uuid"]
         return out_tensor, result, uuid
 
@@ -108,6 +110,23 @@ class BaseModel(nn.Module):
     def forward(self, image, data=None):
         x = self.cnn(image)
         return x
+    
+
+class ClassifierModel(nn.Module):
+    def __init__(self, all_layers, num_outputs):
+        super(ClassifierModel, self).__init__()
+        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
+
+        # freeze inner layers, if called for:
+        for param in self.cnn.parameters():
+            param.requires_grad = all_layers
+
+        self.cnn.fc = nn.Linear(
+            self.cnn.fc.in_features, num_outputs)
+
+    def forward(self, image, data=None):
+        x = self.cnn(image)
+        return x
 
 
 class AugmentedModel(nn.Module):
@@ -137,6 +156,11 @@ class AugmentedModel(nn.Module):
 
 def get_base_model(device, all_layers):
     model_conv = BaseModel(all_layers)
+    model_conv.to(device)
+    return model_conv
+
+def get_classifier_model(device, all_layers):
+    model_conv = ClassifierModel(all_layers, 4)
     model_conv.to(device)
     return model_conv
 
