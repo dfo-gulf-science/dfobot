@@ -166,10 +166,10 @@ def crop_and_isolate():
     # cv2.waitKey()
     # cv2.destroyAllWindows()
 
-def train_test_splitter(in_dir, out_dir, split=0.9):
+def train_val_splitter(in_dir, out_dir, split=0.9):
     img_list = os.listdir(in_dir)
     os.makedirs(f"{out_dir}train", exist_ok=True)
-    os.makedirs(f"{out_dir}test", exist_ok=True)
+    os.makedirs(f"{out_dir}val", exist_ok=True)
 
     count = 0
     for img_name in img_list:
@@ -178,7 +178,7 @@ def train_test_splitter(in_dir, out_dir, split=0.9):
         if count < TEST_TRAIN_SPLIT * len(img_list):
             mode = "train"
         else:
-            mode = "test"
+            mode = "val"
         dst = os.path.join(out_dir, mode, img_name)
         shutil.copy(src, dst)
 
@@ -197,6 +197,6 @@ def load_dmapps_report(herring):
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 crop_and_isolate()
 #
-# OUT_DIR = "/home/stoyelq/Desktop/work/dfobot_working/crack_finder/"
+# OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/"
 # IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/labeled/"
-# train_test_splitter(IN_DIR, OUT_DIR)
+# train_val_splitter(IN_DIR, OUT_DIR)

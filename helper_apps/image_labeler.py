@@ -77,7 +77,7 @@ class ImageReviewApp:
         self.progress_label.config(text=f"Image {self.current_index + 1} of {self.total_images}")
 
     def record_response(self, response):
-        filename = self.image_files[self.current_index]
+        filename = self.image_files[self.current_index].split(".")[0]
         with open(CSV_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([filename, response])

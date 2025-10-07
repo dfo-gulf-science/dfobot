@@ -12,8 +12,11 @@ from torchvision.transforms import v2
 import torch
 
 
-METADATA_CSV_PATH = "/home/stoyelq/Documents/dfobot_data/metadata/metadata.csv"
-METADATA_COLUMNS = ['month', 'is_male', 'is_female', 'is_unknown', 'is_plaice', 'is_herring']
+# METADATA_CSV_PATH = "/home/stoyelq/Documents/dfobot_data/metadata/metadata.csv"
+# METADATA_COLUMNS = ['month', 'is_male', 'is_female', 'is_unknown', 'is_plaice', 'is_herring']
+
+METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/labels.csv"
+METADATA_COLUMNS = ['result', 'result_second' ]
 
 class ImageFolderCustom(Dataset):
     def __init__(self, targ_dir, transform=None):
@@ -24,11 +27,12 @@ class ImageFolderCustom(Dataset):
 
     def get_metadata(self, path):
         # make sure this function returns the label from the path
-        uuid = path.name.split("__")[0]
-        metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)]
+        uuid = path.name.split(".")[0]
+        metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
         out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
-        age = torch.tensor(float(metadata_row["age"].values))
-        return out_tensor, age
+        result = torch.tensor(float(metadata_row["result"]))
+        uuid = metadata_row["uuid"]
+        return out_tensor, result, uuid
 
     def load_image(self, index):
         image_path = self.paths[index]
@@ -39,12 +43,12 @@ class ImageFolderCustom(Dataset):
 
     def __getitem__(self, index):
         img = self.load_image(index)
-        metadata, age = self.get_metadata(self.paths[index])
+        metadata, result, uuid = self.get_metadata(self.paths[index])
 
         if self.transform:
-            return self.transform(img), metadata, age
+            return self.transform(img), metadata, result, uuid
         else:
-            return img, metadata, age
+            return img, metadata, result, uuid
 
 
 def get_dataloaders(batch_size, max_size=None, config_dict=None):
@@ -87,24 +91,6 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 
     return dataloaders, dataset_sizes
-
-def get_old_base_model(device, all_layers):
-    model_conv = models.resnet50(weights='IMAGENET1K_V2')
-    model_conv.to(device)
-    # freeze inner layers, if called for:
-    for param in model_conv.parameters():
-        param.requires_grad = all_layers
-
-    # swap out final fc layer:
-    num_ftrs = model_conv.fc.in_features
-    model_conv.fc = nn.Linear(num_ftrs, 1)  # go to single value
-    return model_conv
-
-
-def get_augmented_model(device, all_layers):
-    model_conv = AugmentedModel(all_layers)
-    model_conv.to(device)
-    return model_conv
 
 
 class BaseModel(nn.Module):
@@ -151,5 +137,10 @@ class AugmentedModel(nn.Module):
 
 def get_base_model(device, all_layers):
     model_conv = BaseModel(all_layers)
+    model_conv.to(device)
+    return model_conv
+
+def get_augmented_model(device, all_layers):
+    model_conv = AugmentedModel(all_layers)
     model_conv.to(device)
     return model_conv
