@@ -4,16 +4,21 @@ from PIL import Image, ImageTk
 import torch
 from torchvision import transforms
 import model.solver as solver
-
-
+from model.model_utils import ClassifierModel
 
 IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
 MODEL_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/015__2025-10-07/solver.pt"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/028__2025-10-08/trained_weights.pth"
 DEVICE = "cuda:1"
+labels = ["Good", "Crack", "Crystal", "Twin"]
+
 
 class ImageChecker:
     def __init__(self, image_size=(224, 224)):
-        model = torch.load(MODEL_PATH, weights_only=False)
+        model = ClassifierModel(num_outputs=len(labels))
+        model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
+
+        # model = torch.load(MODEL_PATH, weights_only=False)
         self.model = model.eval()
         self.image_dir = IMAGE_DIR
         self.image_size = image_size
@@ -46,7 +51,7 @@ class ImageChecker:
     def display_image(self):
         img_path = self.image_paths[self.index]
         pil_img = Image.open(img_path).convert("RGB")
-        display_img = pil_img.resize((800, 800))
+        display_img = pil_img.resize((512, 512))
         tk_img = ImageTk.PhotoImage(display_img)
         self.canvas.config(image=tk_img)
         self.canvas.image = tk_img

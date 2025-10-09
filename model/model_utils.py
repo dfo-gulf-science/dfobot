@@ -64,16 +64,17 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
             transforms.ToTensor(),
             v2.ToDtype(torch.uint8, scale=True),
             v2.RandomRotation(180),
-            v2.RandomResizedCrop(size=CROP_SIZE),
+            transforms.Resize(CROP_SIZE),
+            # v2.RandomResizedCrop(size=CROP_SIZE),
             v2.ToDtype(torch.float32, scale=True),
-            v2.Normalize(mean=[0.35, 0.39, 0.37], std=[0.1, 0.11, 0.11]),
+            # v2.Normalize(mean=[0.35, 0.39, 0.37], std=[0.1, 0.11, 0.11]),
 
         ]),
         'val': transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(VAL_CROP_SIZE),
             v2.ToDtype(torch.float32, scale=True),
-            v2.Normalize(mean=[0.35, 0.39, 0.37], std=[0.1, 0.11, 0.11]),
+            # v2.Normalize(mean=[0.35, 0.39, 0.37], std=[0.1, 0.11, 0.11]),
 
         ]),
     }
@@ -113,13 +114,13 @@ class BaseModel(nn.Module):
     
 
 class ClassifierModel(nn.Module):
-    def __init__(self, all_layers, num_outputs):
+    def __init__(self, num_outputs):
         super(ClassifierModel, self).__init__()
         self.cnn = models.resnet50(weights='IMAGENET1K_V2')
 
         # freeze inner layers, if called for:
         for param in self.cnn.parameters():
-            param.requires_grad = all_layers
+            param.requires_grad = True
 
         self.cnn.fc = nn.Linear(
             self.cnn.fc.in_features, num_outputs)
@@ -159,8 +160,8 @@ def get_base_model(device, all_layers):
     model_conv.to(device)
     return model_conv
 
-def get_classifier_model(device, all_layers):
-    model_conv = ClassifierModel(all_layers, 4)
+def get_classifier_model(device):
+    model_conv = ClassifierModel(4)
     model_conv.to(device)
     return model_conv
 

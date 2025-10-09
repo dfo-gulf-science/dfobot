@@ -225,11 +225,10 @@ class Solver(object):
             num_train = self.max_data
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         num_iterations = self.num_epochs * iterations_per_epoch
-        prev_time = start_time = time.time()
+        start_time = time.time()
 
         for t in range(num_iterations):
             cur_time = time.time()
-            prev_time = cur_time
             self.model.train()
             self._step()
 
@@ -315,8 +314,6 @@ def get_run_log_dir():
     epochs_log_dir_path = os.path.join(run_log_dir_path, 'epochs')
     os.makedirs(run_log_dir_path, exist_ok=True)
     os.makedirs(epochs_log_dir_path, exist_ok=True)
-
-
     return run_log_dir_path
 
 
