@@ -1,19 +1,26 @@
+import csv
+from datetime import datetime
 import os
 import pickle
 import random
 import time
-
+from torchvision.utils import save_image
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from torch import nn, optim, distributed
 from torchvision import models
 
-from model.model_utils import get_dataloaders, get_base_model, get_augmented_model
+from model.model_utils import get_dataloaders, get_base_model, get_augmented_model, get_classifier_model
 
 """
 SHAMELESSLY copied and modified from the eecs-498-007 assignment code.
 """
+
+LOG_DIR= "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/"
+
+
+
 
 class Solver(object):
     def __init__(self, model, batch_size, criterion, optimizer, config_dict, **kwargs):
@@ -35,11 +42,12 @@ class Solver(object):
         self.num_train_samples = kwargs.pop("num_train_samples", self.max_data if self.max_data else 100)
         self.num_val_samples = kwargs.pop("num_val_samples", self.max_data if self.max_data else 100)
 
+        self.log_dir = kwargs.pop("log_dir", None)
+
         self.checkpoint_name = kwargs.pop("checkpoint_name", None)
         self.print_every = kwargs.pop("print_every", 10)
         self.print_acc_every = kwargs.pop("print_acc_every", 1)
         self.verbose = kwargs.pop("verbose", True)
-        self.data_dir = "/home/stoyelq/Documents/dfobot_data/"
 
         # Throw an error if there are extra keyword arguments
         if len(kwargs) > 0:
@@ -47,6 +55,14 @@ class Solver(object):
             raise ValueError("Unrecognized arguments %s" % extra)
 
         self._reset()
+
+    def print_and_log(self, msg):
+        print(msg)
+        if self.log_dir:
+            solver_log = os.path.join(self.log_dir, "solver_log.txt")
+            with open(solver_log, "a") as log_file:
+                log_file.write(msg)
+                log_file.write("\n")
 
     def _reset(self):
         """
@@ -69,14 +85,14 @@ class Solver(object):
         be called manually.
         """
         # Make a minibatch of training data,
-        images, data, labels = next(iter(self.train_dataloader))
+        images, data, labels, uuids = next(iter(self.train_dataloader))
         images = images.to(self.device)
         data = data.to(self.device)
         labels = labels.to(self.device)
 
         output = self.model(images, data)
 
-        loss = self.loss_function(output[:, 0], labels)
+        loss = self.loss_function(output, labels)
         self.optimizer.zero_grad()
         loss.backward()
 
@@ -85,8 +101,6 @@ class Solver(object):
 
 
     def _save_checkpoint(self):
-        if self.checkpoint_name is None:
-            return
         checkpoint = {
             "model": self.model,
             "config_dict": self.config_dict,
@@ -104,11 +118,11 @@ class Solver(object):
             "train_acc_pm_history": self.train_acc_pm_history,
             "val_acc_pm_history": self.val_acc_pm_history,
         }
-        filename = "%s%sepoch_%d.pkl" % (self.data_dir, self.checkpoint_name, self.epoch)
-        if self.verbose:
-            print('Saving checkpoint to "%s"' % filename)
-        with open(filename, "wb") as f:
-            torch.save(checkpoint, f)
+        filename = "%s/epochs/epoch_%d.pkl" % (self.log_dir, self.epoch)
+        # if self.verbose:
+        #     self.print_and_log('Saving checkpoint to "%s"' % filename)
+        # with open(filename, "wb") as f:
+        #     torch.save(checkpoint, f)
 
 
     def check_accuracy(self, dataloader, num_samples, window=0):
@@ -118,8 +132,6 @@ class Solver(object):
         - dataloader: Dataloader
         - num_samples: If not None, subsample the data and only test the model
           on num_samples datapoints.
-        - batch_size: Split X and y into batches of this size to avoid using
-          too much memory.
         Returns:
         - acc: Scalar giving the fraction of instances that were correctly
           classified by the model.
@@ -133,19 +145,76 @@ class Solver(object):
         y_pred = []
         y_true = []
         for i in range(num_batches):
-            images, data, labels = next(iter(dataloader))
+            images, data, labels, uuids = next(iter(dataloader))
             images = images.to(self.device)
             data = data.to(self.device)
             labels = labels.to(self.device)
 
             scores = self.model(images, data)
-            y_pred.append(scores[:, 0])
+
+            y_pred.append(torch.max(scores, 1)[1])
             y_true.append(labels)
 
         y_pred = torch.cat(y_pred)
         y_true = torch.cat(y_true)
-        acc = ((y_pred - y_true).abs().int() <= window).to(torch.float).mean()
+
+        # acc = ((y_pred - y_true).abs().int() <= window).to(torch.float).mean()
+        acc = torch.sum(y_pred == y_true).to(torch.float).mean()
         return acc.item()
+
+
+    def get_max_min_loss(self, dataloader, num_samples, highlights_size=5):
+        """
+        Find the input images that are fit best and worst, as well as the extreme values
+
+        Inputs:
+        - dataloader: Dataloader
+        - num_samples: How many samples to check
+        Returns:
+        - Nothing, but saves the top images into a file in the log directory.
+        """
+
+        # Compute predictions in batches
+        self.model.eval()
+        num_batches = num_samples // self.batch_size
+        if num_samples % self.batch_size != 0:
+            num_batches += 1
+
+        loss_image_pairs = []
+
+        # first calculate all the losses and store in a list of tuples
+        with torch.no_grad():
+            for i in range(num_batches):
+                images, data, labels, uuids = next(iter(dataloader))
+                images, data, labels = images.to(self.device), data.to(self.device), labels.to(self.device)
+                output = self.model(images, data)
+                print(output)
+                for image_index in range(images.size(0)):
+                    #  handles duplicate uuid case, don't need it for classifier
+                    # prediction = output[:, 0][image_index]
+                    prediction = output[image_index]
+                    loss = self.loss_function(prediction, labels[image_index])
+                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, uuids[image_index]))
+
+        # Sort by loss
+        loss_image_pairs.sort(key=lambda x: x[0])
+        lowest_losses = loss_image_pairs[:highlights_size]
+        highest_losses = loss_image_pairs[-highlights_size:]
+
+        high_dir = os.path.join(self.log_dir, 'highest_losses')
+        low_dir = os.path.join(self.log_dir, 'lowest_losses')
+        os.makedirs(high_dir, exist_ok=True)
+        os.makedirs(low_dir, exist_ok=True)
+
+        # Save images
+        for idx, (loss, img, prediction, uuid) in enumerate(highest_losses):
+            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, uuid) in enumerate(lowest_losses):
+            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+
+        return
 
     def train(self, return_best_params=True):
         """
@@ -156,17 +225,16 @@ class Solver(object):
             num_train = self.max_data
         iterations_per_epoch = max(num_train // self.batch_size, 1)
         num_iterations = self.num_epochs * iterations_per_epoch
-        prev_time = start_time = time.time()
+        start_time = time.time()
 
         for t in range(num_iterations):
             cur_time = time.time()
-            prev_time = cur_time
             self.model.train()
             self._step()
 
             # Maybe print training loss
             if self.verbose and t % self.print_every == 0:
-                print(
+                self.print_and_log(
                     "(Time %.2f sec; Iteration %d / %d) loss: %f"
                     % (
                         time.time() - start_time,
@@ -208,11 +276,11 @@ class Solver(object):
                     self._save_checkpoint()
 
                     if self.verbose and self.epoch % self.print_acc_every == 0:
-                        print(
+                        self.print_and_log(
                             "(Epoch %d / %d) train acc: %f; val_acc: %f"
                             % (self.epoch, self.num_epochs, train_acc, val_acc)
                         )
-                        # print(
+                        # self.print_and_log(
                         #     "(Epoch %d / %d) train acc pm: %f; val_acc pm: %f"
                         #     % (self.epoch, self.num_epochs, train_acc_pm, val_acc_pm)
                         # )
@@ -223,6 +291,9 @@ class Solver(object):
                         self.best_params = self.model.state_dict()
 
 
+        # once done, save best and worst images:
+        self.get_max_min_loss(self.val_dataloader, self.num_val_samples)
+
         # At the end of training swap the best params into the model
         if return_best_params:
             self.model.state_dict = self.best_params
@@ -232,15 +303,43 @@ def rand_jitter(arr):
     stdev = .01 * (max(arr) - min(arr))
     return arr + np.random.randn(len(arr)) * stdev
 
+def get_run_log_dir():
+    try:
+        max_count = max([int(file_name[:3])for file_name in os.listdir(LOG_DIR)])
+        run_count = str(max_count + 1).zfill(3)
+    except ValueError:
+        run_count = '001'
+    run_log_dir_name = f"{run_count}__{datetime.today().strftime('%Y-%m-%d')}"
+    run_log_dir_path = os.path.join(LOG_DIR, run_log_dir_name)
+    epochs_log_dir_path = os.path.join(run_log_dir_path, 'epochs')
+    os.makedirs(run_log_dir_path, exist_ok=True)
+    os.makedirs(epochs_log_dir_path, exist_ok=True)
+    return run_log_dir_path
 
-def run_solver(device, plots=False, all_layers=False, config_dict=None, save_count=None, load_checkpoint=None):
-    for key, value in config_dict.items():
-        print(f"{key}: {value}")
+
+def run_solver(device, all_layers=False, config_dict=None, load_checkpoint=None):
+    log_path = get_run_log_dir()
+
+    # write config parameters to log
+    config_file_path = os.path.join(log_path, "config.csv")
+    with open(config_file_path,'w') as config_file:
+        config_file_writer = csv.writer(config_file)
+        for key, value in config_dict.items():
+            print(f"{key}: {value}")
+            config_file_writer.writerow([key, value])
+
+
 
     # model_conv = get_base_model(device, all_layers)
-    model_conv = get_augmented_model(device, all_layers)
-    criterion = nn.MSELoss()
 
+    model_conv = get_classifier_model(device, all_layers)
+    criterion = nn.CrossEntropyLoss()
+
+    # model_conv = get_augmented_model(device, all_layers)
+    # criterion = nn.MSELoss()
+
+
+    # use checkpoint from previous run?
     checkpoint = None
     if load_checkpoint is not None:
         checkpoint = torch.load(load_checkpoint, map_location=torch.device(device))
@@ -273,42 +372,39 @@ def run_solver(device, plots=False, all_layers=False, config_dict=None, save_cou
                     num_train_samples=config_dict["ACC_SAMPLES"],
                     num_val_samples=config_dict["ACC_VAL_SAMPLES"],
                     device=device,
-                    checkpoint_name="gpu_{}/".format(device[-1]),
+                    log_dir=log_path,
                     )
     solver.train(return_best_params=False)
 
-    if save_count:
-        torch.save(solver, f"/home/stoyelq/Documents/dfobot_data/hyper_search/model_solver_{device.split(':')[-1]}_{save_count}.pt")
-    else:
-        torch.save(solver, f"/home/stoyelq/Documents/dfobot_data/model_solver_{device.split(':')[-1]}.pt")
+    torch.save(solver.model, f"{log_path}/solver.pt")
 
-    if plots:
-        make_solver_plots(solver)
-    else:
-        make_solver_plots(solver, device=device, save_count=save_count)
+    make_solver_plots(solver, log_path=log_path)
+
+    print(log_path)
+
     return solver
 
 
-def make_solver_plots(solver, device=None, save_count=None):
+def make_solver_plots(solver, device=None, log_path=None):
     plt.plot(solver.loss_history, 'o')
     window_width = 20
     cumsum_vec = np.cumsum(np.insert(solver.loss_history, 0, 0))
     ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
     plt.plot(list(range(0, len(solver.loss_history) - window_width + 1)), ma_vec)
-    if save_count:
-        plt.savefig(f"/home/stoyelq/Documents/dfobot_data/hyper_search/loss_{device.split(':')[-1]}_{save_count}.png")
+    if log_path:
+        plt.savefig(f"{log_path}/loss.png")
         plt.clf()
     else:
         plt.show()
 
     plt.plot(solver.train_acc_history, label="train_acc")
-    plt.plot(solver.val_acc_history, label="train_acc_pm")
-    plt.plot(solver.train_acc_pm_history, label="val_acc_pm")
-    plt.plot(solver.val_acc_pm_history, label="val_acc")
+    plt.plot(solver.val_acc_history, label="val_acc")
+    # plt.plot(solver.train_acc_pm_history, label="val_acc_pm")
+    # plt.plot(solver.val_acc_pm_history, label="val_acc_pm")
     plt.legend(loc="upper left")
     plt.title(f"Training and validation accuracy with lr: {solver.config_dict['LEARNING_RATE']}, weight decay: {solver.config_dict['WEIGHT_DECAY']}")
-    if save_count:
-        plt.savefig(f"/home/stoyelq/Documents/dfobot_data/hyper_search/acc_{device.split(':')[-1]}_{save_count}.png")
+    if log_path:
+        plt.savefig(f"{log_path}/accuracy.png")
         plt.clf()
     else:
         plt.show()
