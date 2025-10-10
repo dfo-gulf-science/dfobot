@@ -6,9 +6,10 @@ from torchvision import transforms
 import model.solver as solver
 from model.model_utils import ClassifierModel
 
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
+# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
 MODEL_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/015__2025-10-07/solver.pt"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/028__2025-10-08/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/057__2025-10-08/trained_weights.pth"
 DEVICE = "cuda:1"
 labels = ["Good", "Crack", "Crystal", "Twin"]
 
@@ -60,6 +61,7 @@ class ImageChecker:
         with torch.no_grad():
             output = self.model(input_tensor)
             print(output)
+            print(img_path)
             labels = ["Good", "Crack", "Crystal", "Twin"]
             prediction = labels[int(torch.max(output[0], 0)[1].item())]
 

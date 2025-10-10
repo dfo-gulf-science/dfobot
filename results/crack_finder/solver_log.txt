@@ -1,0 +1,64 @@
+(Time 8.66 sec;) [1/15,    25/90] loss: 0.637
+(Time 16.00 sec;) [1/15,    50/90] loss: 0.246
+(Time 23.30 sec;) [1/15,    75/90] loss: 0.216
+Epoch 1 stats: Training accuracy: 95.     Test accuracy: 97.
+(Time 38.95 sec;) [2/15,    25/90] loss: 0.133
+(Time 46.26 sec;) [2/15,    50/90] loss: 0.091
+(Time 53.69 sec;) [2/15,    75/90] loss: 0.106
+Epoch 2 stats: Training accuracy: 96.     Test accuracy: 96.
+(Time 69.63 sec;) [3/15,    25/90] loss: 0.084
+(Time 77.03 sec;) [3/15,    50/90] loss: 0.061
+(Time 84.25 sec;) [3/15,    75/90] loss: 0.084
+Epoch 3 stats: Training accuracy: 94.     Test accuracy: 95.
+(Time 100.06 sec;) [4/15,    25/90] loss: 0.077
+(Time 107.37 sec;) [4/15,    50/90] loss: 0.060
+(Time 114.79 sec;) [4/15,    75/90] loss: 0.047
+Epoch 4 stats: Training accuracy: 97.     Test accuracy: 97.
+(Time 130.66 sec;) [5/15,    25/90] loss: 0.041
+(Time 138.40 sec;) [5/15,    50/90] loss: 0.076
+(Time 145.91 sec;) [5/15,    75/90] loss: 0.046
+Epoch 5 stats: Training accuracy: 97.     Test accuracy: 98.
+(Time 161.85 sec;) [6/15,    25/90] loss: 0.042
+(Time 169.09 sec;) [6/15,    50/90] loss: 0.035
+(Time 176.40 sec;) [6/15,    75/90] loss: 0.039
+Epoch 6 stats: Training accuracy: 97.     Test accuracy: 97.
+(Time 192.38 sec;) [7/15,    25/90] loss: 0.031
+(Time 201.50 sec;) [7/15,    50/90] loss: 0.027
+(Time 209.28 sec;) [7/15,    75/90] loss: 0.013
+Epoch 7 stats: Training accuracy: 99.     Test accuracy: 98.
+(Time 225.02 sec;) [8/15,    25/90] loss: 0.037
+(Time 232.35 sec;) [8/15,    50/90] loss: 0.042
+(Time 239.74 sec;) [8/15,    75/90] loss: 0.033
+Epoch 8 stats: Training accuracy: 96.     Test accuracy: 97.
+(Time 255.53 sec;) [9/15,    25/90] loss: 0.032
+(Time 262.92 sec;) [9/15,    50/90] loss: 0.062
+(Time 270.27 sec;) [9/15,    75/90] loss: 0.031
+Epoch 9 stats: Training accuracy: 97.     Test accuracy: 96.
+(Time 286.25 sec;) [10/15,    25/90] loss: 0.012
+(Time 293.66 sec;) [10/15,    50/90] loss: 0.018
+(Time 300.96 sec;) [10/15,    75/90] loss: 0.032
+Epoch 10 stats: Training accuracy: 97.     Test accuracy: 97.
+(Time 316.63 sec;) [11/15,    25/90] loss: 0.022
+(Time 323.90 sec;) [11/15,    50/90] loss: 0.026
+(Time 331.12 sec;) [11/15,    75/90] loss: 0.032
+Epoch 11 stats: Training accuracy: 97.     Test accuracy: 98.
+(Time 347.06 sec;) [12/15,    25/90] loss: 0.008
+(Time 354.35 sec;) [12/15,    50/90] loss: 0.013
+(Time 361.67 sec;) [12/15,    75/90] loss: 0.050
+Epoch 12 stats: Training accuracy: 96.     Test accuracy: 97.
+(Time 377.51 sec;) [13/15,    25/90] loss: 0.019
+(Time 384.80 sec;) [13/15,    50/90] loss: 0.027
+(Time 392.23 sec;) [13/15,    75/90] loss: 0.033
+Epoch 13 stats: Training accuracy: 98.     Test accuracy: 99.
+(Time 407.92 sec;) [14/15,    25/90] loss: 0.008
+(Time 415.44 sec;) [14/15,    50/90] loss: 0.029
+(Time 422.91 sec;) [14/15,    75/90] loss: 0.022
+Epoch 14 stats: Training accuracy: 98.     Test accuracy: 97.
+(Time 438.73 sec;) [15/15,    25/90] loss: 0.039
+(Time 446.24 sec;) [15/15,    50/90] loss: 0.021
+(Time 453.82 sec;) [15/15,    75/90] loss: 0.009
+Epoch 15 stats: Training accuracy: 98.     Test accuracy: 98.
+Finished Training
+Accuracy for class: good  is 97.8 %
+Accuracy for class: crack is 100.0 %
+Accuracy for class: crystal is 100.0 %

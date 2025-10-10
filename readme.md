@@ -38,7 +38,16 @@ Switch to using yellowtail dataset, ~10000 images across 20 years of RV survey r
 # Creating a new CNN:
  - Preprocess images into single raw dir (crop_and_isolate).  Each image should have a UUID filename
  - Create csv of labels, one row per UUID.
-  - Create a train/test folder (train_test_splitter)
+ - Create a train/test folder (train_test_splitter)
+
+## Classifiers
+Will create several 'helper' CNN's to improve data quality and provide potentially superior initial weights for the aging CNN.  
+The first of these helper models is the "crack finder".  This required ~2000 labeled images of individual otoliths with one of four labels: good, cracked, twinned (images contain both otoliths) and crystal (otoliths with a bubbly texture).
+Note that there was a fairly low hit count for all of the classes other than good (135 cracked, 35 crystal, 10 twin'd).  A hyper parameter search was performed, optimizing for the highest accuracy at detecting cracks. The optimal parameters were:
+ - Learning rate: 1e-4
+ - Weight decay 1e-6
+ - Image crop size: 300x300
+15 epochs was sufficient to obtain a 100% accuracy at crack detection which held up running on the full 20,000 image dataset
 
  
   
