@@ -197,6 +197,6 @@ def load_dmapps_report(herring):
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 # crop_and_isolate()
 
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/oto_classifier/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/classed/"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/centers/"
 train_val_splitter(IN_DIR, OUT_DIR)

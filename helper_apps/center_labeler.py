@@ -7,15 +7,14 @@ import csv
 
 # Directories
 IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw/"
-
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/classed/"
-CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/classes.csv"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/centers/"
+CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/centers.csv"
 
 # Create out directory if it doesn't exist
 os.makedirs(OUT_DIR, exist_ok=True)
 
 
-class ImageReviewApp:
+class GoodnessLabelerApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Image Review App")
@@ -26,8 +25,12 @@ class ImageReviewApp:
         self.current_index = 0
         self.history = []
 
+        self.image_height = 600
+        self.image_width = 600
+
         self.image_label = tk.Label(root)
         self.image_label.pack(pady=10)
+        self.image_label.bind("<Button-1>", self.record_click)
 
         self.progress_label = tk.Label(root, text="")
         self.progress_label.pack()
@@ -35,21 +38,9 @@ class ImageReviewApp:
         self.button_frame = tk.Frame(root)
         self.button_frame.pack()
 
-        self.good_button = tk.Button(self.button_frame, text="Good (G)", width=10,
-                                     command=lambda: self.record_response("0"))
-        self.good_button.pack(side=tk.LEFT, padx=10)
-
-        self.bad_button = tk.Button(self.button_frame, text="Cracked (C)", width=10,
-                                    command=lambda: self.record_response("1"))
-        self.bad_button.pack(side=tk.LEFT, padx=10)
-
         self.undo_button = tk.Button(self.button_frame, text="Undo (U)", width=10, command=self.undo_last)
         self.undo_button.pack(side=tk.LEFT, padx=10)
 
-        self.root.bind('<g>', lambda e: self.record_response("0"))
-        self.root.bind('<c>', lambda e: self.record_response("1"))
-        self.root.bind('<d>', lambda e: self.record_response("2"))
-        self.root.bind('<t>', lambda e: self.record_response("3"))
         self.root.bind('<u>', lambda e: self.undo_last())
 
         self.load_next_image()
@@ -65,31 +56,33 @@ class ImageReviewApp:
         if self.current_index >= len(self.image_files):
             self.image_label.config(image='', text="No more images to review.")
             self.progress_label.config(text="")
-            self.good_button.config(state=tk.DISABLED)
-            self.bad_button.config(state=tk.DISABLED)
             self.undo_button.config(state=tk.DISABLED)
             return
 
         filename = self.image_files[self.current_index]
         image_path = os.path.join(IN_DIR, filename)
         image = Image.open(image_path)
-        image = image.resize((400, 400))
+        image = image.resize((self.image_width, self.image_height))
         self.tk_image = ImageTk.PhotoImage(image)
         self.image_label.config(image=self.tk_image)
         self.progress_label.config(text=f"Image {self.current_index + 1} of {self.total_images}")
 
-    def record_response(self, response):
+    def record_click(self, event):
+        x_pct = event.x / self.image_width
+        y_pct = event.y / self.image_height
+        print("clicked at", x_pct, y_pct)
+
         uuid = self.image_files[self.current_index].split(".")[0]
         filename = self.image_files[self.current_index]
         with open(CSV_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([uuid, response])
+            writer.writerow([uuid, x_pct, y_pct])
 
         src = os.path.join(IN_DIR, filename)
         dst = os.path.join(OUT_DIR, filename)
         shutil.copy(src, dst)
 
-        self.history.append((filename, uuid, response))
+        self.history.append((filename, uuid, x_pct))
         self.current_index += 1
         self.load_next_image()
 
@@ -105,7 +98,7 @@ class ImageReviewApp:
         dst = os.path.join(OUT_DIR, filename)
         os.remove(dst)
 
-        # Remove last CSV entry
+        # Remove last CSV entry, by overwritting whole thing....
         with open(CSV_FILE, 'r') as f:
             rows = list(csv.reader(f))
             rows = [row for row in rows if row and (row[0] != uuid or row[1] != response)]
@@ -118,5 +111,5 @@ class ImageReviewApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = ImageReviewApp(root)
+    app = GoodnessLabelerApp(root)
     root.mainloop()

@@ -13,12 +13,10 @@ from torchvision.transforms import v2
 import torch
 
 
-# METADATA_CSV_PATH = "/home/stoyelq/Documents/dfobot_data/metadata/metadata.csv"
-# METADATA_COLUMNS = ['month', 'is_male', 'is_female', 'is_unknown', 'is_plaice', 'is_herring']
-
-# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/labels.csv"
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/oto_classifier/labels.csv"
 METADATA_COLUMNS = ['result', 'result_second' ]
+
+
 
 class ImageFolderCustom(Dataset):
     def __init__(self, targ_dir, transform=None):
@@ -53,6 +51,7 @@ class ImageFolderCustom(Dataset):
             return img, metadata, result, uuid
 
 
+
 def get_dataloaders(batch_size, max_size=None, config_dict=None):
     NUM_WORKERS = config_dict['NUM_WORKERS']
     CROP_SIZE = config_dict['CROP_SIZE']
@@ -80,7 +79,6 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
     }
 
     data_dir = IMAGE_FOLDER_DIR
-
     image_datasets = {x: ImageFolderCustom(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
 
     if max_size is not None:
@@ -162,6 +160,11 @@ def get_base_model(device, all_layers):
 
 def get_classifier_model(device):
     model_conv = ClassifierModel(4)
+    model_conv.to(device)
+    return model_conv
+
+def get_center_model(device):
+    model_conv = ClassifierModel(2)
     model_conv.to(device)
     return model_conv
 

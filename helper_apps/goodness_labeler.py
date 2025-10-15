@@ -110,7 +110,6 @@ class GoodnessLabelerApp:
             writer = csv.writer(f)
             writer.writerows(rows)
 
-        # self.image_files.insert(self.current_index, filename)
         self.load_next_image()
 
 

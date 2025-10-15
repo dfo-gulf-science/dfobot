@@ -32,7 +32,6 @@ class ClassifierSolver(object):
         self.num_val_samples = self.config_dict["ACC_SAMPLES"] if self.config_dict["ACC_SAMPLES"] else 100
         self.print_every = self.config_dict["PRINT_EVERY"]
 
-
         self.classes = ["good", "crack", "crystal", "twin"]
 
         # Throw an error if there are extra keyword arguments
@@ -163,7 +162,6 @@ class ClassifierSolver(object):
 
 
     def print_class_scores(self):
-
         # prepare to count predictions for each class
         correct_pred = {classname: 0 for classname in self.classes}
         total_pred = {classname: 0 for classname in self.classes}
