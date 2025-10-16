@@ -8,18 +8,17 @@ from model.model_utils import ClassifierModel
 
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
 IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-MODEL_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/015__2025-10-07/solver.pt"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/057__2025-10-08/trained_weights.pth"
-DEVICE = "cuda:1"
-labels = ["Good", "Crack", "Crystal", "Twin"]
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/021__2025-10-16/trained_weights.pth"
+DEVICE = "cuda:0"
+# labels = ["Good", "Crack", "Crystal", "Twin"]
+LABELS = ["Good", "Bad"]
 
 
 class ImageChecker:
     def __init__(self, image_size=(224, 224)):
-        model = ClassifierModel(num_outputs=len(labels))
+        model = ClassifierModel(num_outputs=len(LABELS))
         model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
 
-        # model = torch.load(MODEL_PATH, weights_only=False)
         self.model = model.eval()
         self.image_dir = IMAGE_DIR
         self.image_size = image_size
@@ -62,8 +61,7 @@ class ImageChecker:
             output = self.model(input_tensor)
             print(output)
             print(img_path)
-            labels = ["Good", "Crack", "Crystal", "Twin"]
-            prediction = labels[int(torch.max(output[0], 0)[1].item())]
+            prediction = LABELS[int(torch.max(output[0], 0)[1].item())]
 
 
         self.pred_label.config(text=f"Predicted Value: {prediction}")

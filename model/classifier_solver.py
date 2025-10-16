@@ -16,6 +16,7 @@ class ClassifierSolver(object):
     def __init__(self, model, criterion, optimizer, config_dict, **kwargs):
         self.device = kwargs.pop("device", "cuda")
         self.log_dir = kwargs.pop("log_dir", None)
+        self.classes = kwargs.pop("classes", None)
 
         self.model = model.to(self.device)
         self.optimizer = optimizer
@@ -24,15 +25,16 @@ class ClassifierSolver(object):
         self.max_data = self.config_dict["MAX_DATA"]
         self.batch_size = self.config_dict["BATCH_SIZE"]
 
-        dataloaders, dataset_sizes = get_dataloaders(self.batch_size, self.max_data, config_dict=config_dict)
+        my_dataloaders = self.config_dict["get_dataloaders"]
+
+        dataloaders, dataset_sizes = my_dataloaders(self.batch_size, self.max_data, config_dict=config_dict)
         self.test_dataloader = dataloaders["val"]
         self.train_dataloader = dataloaders["train"]
         self.dataset_sizes = dataset_sizes
         self.num_epochs = self.config_dict["NUM_EPOCHS"]
+        self.log_epochs = self.config_dict.get("LOG_EPOCHS")
         self.num_val_samples = self.config_dict["ACC_SAMPLES"] if self.config_dict["ACC_SAMPLES"] else 100
         self.print_every = self.config_dict["PRINT_EVERY"]
-
-        self.classes = ["good", "crack", "crystal", "twin"]
 
         # Throw an error if there are extra keyword arguments
         if len(kwargs) > 0:
@@ -116,7 +118,11 @@ class ClassifierSolver(object):
     def save_state(self, epoch=None):
         weights_path = os.path.join(self.log_dir, 'trained_weights.pth')
         if epoch:
-            weights_path = os.path.join(self.log_dir, 'epochs', f'epoch_{epoch + 1}_weights.pth')
+            if self.log_epochs:
+                weights_path = os.path.join(self.log_dir, 'epochs', f'epoch_{epoch + 1}_weights.pth')
+            else:
+                # don't save epochs unless
+                return
 
         # Save weights
         torch.save(self.model.state_dict(), weights_path)
@@ -187,7 +193,11 @@ class ClassifierSolver(object):
                 self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
 
 
-def run_class_solver(device, config_dict=None, load_checkpoint=None):
+def run_class_solver(device, config_dict=None, load_checkpoint=None, classes=None):
+
+    if classes is None:
+        classes = ["good", "crack", "crystal", "twin"]
+
     log_path = get_run_log_dir()
 
     # write config parameters to log
@@ -198,7 +208,7 @@ def run_class_solver(device, config_dict=None, load_checkpoint=None):
             print(f"{key}: {value}")
             config_file_writer.writerow([key, value])
 
-    class_model = get_classifier_model(device)
+    class_model = get_classifier_model(device, num_classes=len(classes))
     criterion = nn.CrossEntropyLoss()
 
     # use checkpoint from previous run?
@@ -214,12 +224,13 @@ def run_class_solver(device, config_dict=None, load_checkpoint=None):
 
 
     solver = ClassifierSolver(class_model,
-                    criterion=criterion,
-                    optimizer=optimizer_ft,
-                    config_dict=config_dict,
-                    device=device,
-                    log_dir=log_path,
-                    )
+                              criterion=criterion,
+                              optimizer=optimizer_ft,
+                              config_dict=config_dict,
+                              device=device,
+                              log_dir=log_path,
+                              classes=classes,
+                              )
     solver.train()
     print(log_path)
     return solver

@@ -158,8 +158,8 @@ def get_base_model(device, all_layers):
     model_conv.to(device)
     return model_conv
 
-def get_classifier_model(device):
-    model_conv = ClassifierModel(4)
+def get_classifier_model(device, num_classes):
+    model_conv = ClassifierModel(num_classes)
     model_conv.to(device)
     return model_conv
 

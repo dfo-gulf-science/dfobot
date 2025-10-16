@@ -305,7 +305,7 @@ def rand_jitter(arr):
 
 def get_run_log_dir():
     try:
-        max_count = max([int(file_name[:3])for file_name in os.listdir(LOG_DIR)])
+        max_count = max([int(file_name[:3])for file_name in os.listdir(LOG_DIR) if not "hyper" in file_name])
         run_count = str(max_count + 1).zfill(3)
     except ValueError:
         run_count = '001'
