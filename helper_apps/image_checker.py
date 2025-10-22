@@ -8,7 +8,7 @@ from model.model_utils import ClassifierModel
 
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
 IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/021__2025-10-16/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/152__2025-10-20/trained_weights.pth"
 DEVICE = "cuda:0"
 # labels = ["Good", "Crack", "Crystal", "Twin"]
 LABELS = ["Good", "Bad"]

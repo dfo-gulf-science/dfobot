@@ -6,9 +6,9 @@ from torchvision import transforms
 import model.solver as solver
 from model.model_utils import ClassifierModel
 
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/train"
-# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/095__2025-10-14/trained_weights.pth"
+# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/train"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/149__2025-10-17/trained_weights.pth"
 DEVICE = "cuda:1"
 
 

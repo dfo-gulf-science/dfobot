@@ -191,12 +191,54 @@ def load_dmapps_report(herring):
         gt_file = os.path.join("/home/stoyelq/Documents/dfobot_data/2022_RV_GT.csv")
     gt_df = pd.read_csv(gt_file)
     return gt_df
+
+
+def row_ager_and_writer(row, ages_writer, oracle_df):
+    year = int(row["filename"].split("-")[1])
+    mission_number = int(row["filename"].split("-")[2])
+    fish_number = int(row["filename"].split("-")[3].split("(")[0].strip())
+    row_match = oracle_df[(oracle_df.year==year) & (oracle_df.cruise_number==mission_number) & (oracle_df.fish_number==fish_number)]
+    if row_match.shape[0] == 1:
+        ages_writer.writerow([row["uuid"], row["filename"], int(row_match.iloc[0].age), int(row_match.iloc[0].annuli), int(row_match.iloc[0].edge_type), row_match.iloc[0].length, row_match.iloc[0].weight])
+    elif row_match.shape[0] == 0:
+        ages_writer.writerow([row["uuid"], row["filename"]])
+    else:
+        print(row)
+
+
+
+def join_oracle_dump_to_metadata(herring):
+    metadata = pd.read_csv(RAW_METADATA)
+    oracle_dump = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot/yellowtail/yellowtail_oracle_dump.csv")
+
+    with open("/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages.csv",'w') as ages_sheet:
+        ages_writer = csv.writer(ages_sheet)
+        ages_writer.writerow(["uuid", "filename", "age", "annuli", "edge_type", "length", "weight"])
+
+        metadata.apply(row_ager_and_writer, ages_writer=ages_writer, oracle_df=oracle_dump, axis=1)
+    return
+
+
+def wipe_ageless():
+    target_dir = "/home/stoyelq/my_hot_storage/dfobot_working/ages/val/"
+    img_list = os.listdir(target_dir)
+
+    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv")
+
+    for img_name in img_list:
+        uuid = img_name.split(".")[0]
+        metadata_row = metadata_df[(metadata_df["uuid"] == uuid)].iloc[0]
+        if pd.isna(metadata_row.age):
+            os.remove(os.path.join(target_dir, img_name))
+    return
 #
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/plaice/"
 # crop_and_isolate(herring=False)
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 # crop_and_isolate()
+#
+# OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/"
+# IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/sorted/goodness/Good/"
+# train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/goodness/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/goodness/"
-train_val_splitter(IN_DIR, OUT_DIR)
+wipe_ageless()
