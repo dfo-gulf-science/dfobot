@@ -80,7 +80,7 @@ class AgingSolver(ClassifierSolver):
 
                 # calculate outputs by running images through the network
                 outputs = self.model(images)
-                # got to be within 1pct of real:
+                # got to be within 1 year of real :
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()

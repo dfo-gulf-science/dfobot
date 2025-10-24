@@ -8,7 +8,7 @@ config_dict = {
     "get_dataloaders": get_goodness_dataloader,
     "NUM_WORKERS": 4,
     "CROP_SIZE": 300,
-    "VAL_CROP_SIZE": 244,
+    "VAL_CROP_SIZE": 224,
     "LEARNING_RATE": 5e-6,
     "BATCH_SIZE": 10,
     "PRINT_EVERY": 40,

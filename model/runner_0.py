@@ -3,8 +3,8 @@ from classifier_solver import run_class_solver
 config_dict = {
     "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/oto_classifier/",
     "NUM_WORKERS": 4,
-    "CROP_SIZE": 244,
-    "VAL_CROP_SIZE": 244,
+    "CROP_SIZE": 224,
+    "VAL_CROP_SIZE": 224,
     "LEARNING_RATE": 1e-5,
     "BATCH_SIZE": 10,
     "PRINT_EVERY": 25,
