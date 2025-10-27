@@ -8,11 +8,11 @@ import csv
 LOG_DIR= "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/"
 
 
-dev_count = 1
+dev_count = 0
 device = f"cuda:{dev_count}"
-learning_rates = [1e-6, 1e-5, 1e-4, 1e-3]
-weight_decays = [0, 1e-7, 5e-7, 1e-6, 5e-6]
-crop_sizes = [600, 512, 400, 300]
+learning_rates = [5e-3, 1e-5, 1e-4, 1e-3]
+weight_decays = [0, 1e-4]
+crop_sizes = [600, 400, 300]
 config_dict = {
     "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/ages/",
     "get_dataloaders": get_aging_dataloaders,

@@ -409,22 +409,20 @@ def make_solver_plots(solver, device=None, log_path=None):
     else:
         plt.show()
 
-def make_bot_plot(bot, num_samples, config_dict, device):
-    dataloaders, _ = get_dataloaders(1, None, config_dict=config_dict)
-    val_dataloader = dataloaders["val"]
+def make_bot_plot(bot, num_samples, dataloader, device, title):
     y_pred = []
     y_true_noised = []
     y_true = []
     bot.eval()
     with torch.no_grad():
         for i in range(num_samples):
-            images, data, labels = next(iter(val_dataloader))
+            images, data, labels, uuids = next(iter(dataloader))
             images = images.to(device)
             data = data.to(device)
             labels = labels.to(device)
             scores = bot(images, data)
             scores = scores.detach().cpu()
-            y_pred.append(scores[0])
+            y_pred.append(scores.T[0])
             y_true.append(labels)
             y_true_noised.append(labels + random.random() / 5)
             torch.cuda.empty_cache()
@@ -433,6 +431,7 @@ def make_bot_plot(bot, num_samples, config_dict, device):
     y_true = torch.cat(y_true)
     y_true_noised = torch.cat(y_true_noised)
     plt.scatter(y_true_noised.tolist(), y_pred.tolist())
+    plt.title(title)
     plt.plot([0, 25], [0, 25])
     plt.show()
 

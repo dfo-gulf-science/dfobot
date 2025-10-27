@@ -1,22 +1,32 @@
 import os
 import tkinter as tk
+
+import pandas as pd
 from PIL import Image, ImageTk
 import torch
 from torchvision import transforms
 import model.solver as solver
 from model.model_utils import ClassifierModel
 
-# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/train/"
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/152__2025-10-20/trained_weights.pth"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/train/"
+# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/022__2025-10-23/trained_weights.pth"
 DEVICE = "cuda:0"
 # labels = ["Good", "Crack", "Crystal", "Twin"]
 LABELS = ["Good", "Bad"]
 
+def get_age_from_path(path):
+    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv")
+    # make sure this function returns the label from the path
+    uuid = path.split(".")[0]
+    metadata_row = metadata_df[(metadata_df["uuid"] == uuid)].iloc[0]
+    result = torch.tensor([float(metadata_row["annuli"])])
+    return result
 
 class ImageChecker:
     def __init__(self, image_size=(224, 224)):
-        model = ClassifierModel(num_outputs=len(LABELS))
+        # model = ClassifierModel(num_outputs=len(LABELS))
+        model = ClassifierModel(num_outputs=1)
         model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
 
         self.model = model.eval()
@@ -35,9 +45,11 @@ class ImageChecker:
         ])
 
         self.root = tk.Tk()
-        self.root.title("Regression Model Viewer")
+        self.root.title("Aging Model Viewer")
         self.canvas = tk.Label(self.root)
         self.canvas.pack()
+        self.real_label = tk.Label(self.root, text="", font=("Arial", 16))
+        self.real_label.pack()
         self.pred_label = tk.Label(self.root, text="", font=("Arial", 16))
         self.pred_label.pack()
 
@@ -60,10 +72,12 @@ class ImageChecker:
         with torch.no_grad():
             output = self.model(input_tensor)
             print(output)
-            print(img_path)
-            prediction = LABELS[int(torch.max(output[0], 0)[1].item())]
+            # prediction = LABELS[int(torch.max(output[0], 0)[1].item())]
+            prediction = output[0][0]
 
+        real_value = get_age_from_path(img_path.split("/")[-1])[0]
 
+        self.real_label.config(text=f"Real Value: {real_value}")
         self.pred_label.config(text=f"Predicted Value: {prediction}")
 
     def next_image(self, event=None):

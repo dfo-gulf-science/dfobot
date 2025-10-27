@@ -10,7 +10,7 @@ from torchvision.transforms import v2
 import torch
 
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv"
-METADATA_COLUMNS = ['age']
+METADATA_COLUMNS = ['annuli']
 
 
 class AgingImageFolderCustom(ImageFolderCustom):
@@ -25,7 +25,7 @@ class AgingImageFolderCustom(ImageFolderCustom):
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
         out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
-        result = torch.tensor([float(metadata_row["age"])])
+        result = torch.tensor([float(metadata_row["annuli"])])
         uuid = metadata_row["uuid"]
         return out_tensor, result, uuid
 
