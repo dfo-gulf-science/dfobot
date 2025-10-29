@@ -29,10 +29,10 @@ class ImageFolderCustom(Dataset):
         # make sure this function returns the label from the path
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
-        out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
+        out_metadata_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
         result = torch.tensor(int(metadata_row["result"]))
         uuid = metadata_row["uuid"]
-        return out_tensor, result, uuid
+        return out_metadata_tensor, result, uuid
 
     def load_image(self, index):
         image_path = self.paths[index]
@@ -97,7 +97,7 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
 class BaseModel(nn.Module):
     def __init__(self, all_layers):
         super(BaseModel, self).__init__()
-        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
+        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
 
         # freeze inner layers, if called for:
         for param in self.cnn.parameters():
@@ -114,7 +114,7 @@ class BaseModel(nn.Module):
 class ClassifierModel(nn.Module):
     def __init__(self, num_outputs):
         super(ClassifierModel, self).__init__()
-        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
+        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
 
         # freeze inner layers, if called for:
         for param in self.cnn.parameters():
@@ -131,27 +131,29 @@ class ClassifierModel(nn.Module):
 class AugmentedModel(nn.Module):
     cnn_out_size = 25
     hidden_layer_size = 25
-    meta_data_length = len(METADATA_COLUMNS)
 
-    def __init__(self, all_layers):
+    def __init__(self, num_outputs, metadata_length):
         super(AugmentedModel, self).__init__()
-        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
-        # freeze inner layers, if called for:
-        for param in self.cnn.parameters():
-            param.requires_grad = all_layers
+        meta_data_length = metadata_length
+        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
 
         self.cnn.fc = nn.Linear(
             self.cnn.fc.in_features, self.cnn_out_size)
 
-        self.fc1 = nn.Linear(self.cnn_out_size + self.meta_data_length, self.hidden_layer_size)
-        self.fc2 = nn.Linear(self.hidden_layer_size, 1) # 1 = age
+        self.fc1 = nn.Linear(self.cnn_out_size + meta_data_length, self.hidden_layer_size)
+        self.fc2 = nn.Linear(self.hidden_layer_size, num_outputs) # 1 = age
+
+        torch.nn.init.normal_(self.cnn.fc.weight, mean=0, std=0.01)
+        torch.nn.init.normal_(self.fc1.weight, mean=0, std=0.01)
+        torch.nn.init.normal_(self.fc2.weight, mean=0, std=0.01)
+
 
     def forward(self, image, metadata):
         cnn_out = self.cnn(image)
-        cnn_out_augmented = torch.cat((cnn_out, metadata.type(cnn_out.dtype)), dim=1)
+        cnn_out_augmented = torch.cat((cnn_out, metadata.type(cnn_out.dtype).expand(1, -1).T), dim=1)
         fc1_out = relu(self.fc1(cnn_out_augmented))
-        age = self.fc2(fc1_out)
-        return age
+        output = self.fc2(fc1_out)
+        return output
 
 def get_base_model(device, all_layers):
     model_conv = BaseModel(all_layers)

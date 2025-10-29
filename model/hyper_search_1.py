@@ -8,18 +8,19 @@ import csv
 LOG_DIR= "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/"
 
 
-dev_count = 0
+dev_count = 1
 device = f"cuda:{dev_count}"
 learning_rates = [1e-4]
 weight_decays = [1e-5]
 crop_sizes = [500, 400, 300]
+val_crop_sizes = [500, 400, 300]
 config_dict = {
     "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/ages/",
     "get_dataloaders": get_aging_dataloaders,
     "NUM_WORKERS": 4,
     "VAL_CROP_SIZE": 224,
-    "BATCH_SIZE": 20,
-    "PRINT_EVERY": 25,
+    "BATCH_SIZE": 10,
+    "PRINT_EVERY": 100,
     "MAX_DATA": None, # 150,
     "NUM_EPOCHS": 20,
     "LOG_EPOCHS": False,
@@ -49,16 +50,18 @@ with open(hyper_log_path,'w') as hyper_log:
     config_file_writer.writerow(["log_dir", "learning_rate", "weight_decay", "crop_size", "accuracy"])
 
 
+
 for lr in learning_rates:
     for weight_decay in weight_decays:
         for cs in crop_sizes:
+            for vcs in val_crop_sizes:
                 config_dict["CROP_SIZE"] = cs
-                config_dict["VAL_CROP_SIZE"] = cs
+                config_dict["VAL_CROP_SIZE"] = vcs
                 config_dict["LEARNING_RATE"] = lr
                 config_dict["WEIGHT_DECAY"] = weight_decay
                 solver = run_aging_solver(device=device, config_dict=config_dict)
                 with open(hyper_log_path, "a") as hyper_log:
-                    hyper_log.write(f"{solver.log_dir}, {lr}, {weight_decay}, {cs}, {max(solver.test_acc_history)}\n")
+                    hyper_log.write(f"{solver.log_dir}, {lr}, {weight_decay}, {cs}, {min(solver.test_acc_history)}\n")
 
                 acc_history.append(f"Log dir: {solver.log_dir}, Learning rate: {lr}, crop size: {cs}, and weight_decay: {weight_decay}. \n Best validation accuracy: {max(solver.test_acc_history)}")
 

@@ -71,7 +71,7 @@ class Solver(object):
         """
         # Set up some variables for book-keeping
         self.epoch = 0
-        self.best_val_acc = 0
+        self.best_val_acc = 99999
         self.best_params = {}
         self.loss_history = []
         self.train_acc_history = []
@@ -432,7 +432,7 @@ def make_bot_plot(bot, num_samples, dataloader, device, title):
     y_true_noised = torch.cat(y_true_noised)
     plt.scatter(y_true_noised.tolist(), y_pred.tolist())
     plt.title(title)
-    plt.plot([0, 25], [0, 25])
+    plt.plot([0, 12], [0, 12])
     plt.show()
 
     return y_pred, y_true

@@ -5,13 +5,13 @@ from model.solver import run_solver, make_solver_plots, make_bot_plot
 import torch
 import gc
 
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/087__2025-10-27/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/014__2025-10-28/trained_weights.pth"
 device = "cuda:1"
 def get_dfobot():
     config_dict = {
         'NUM_WORKERS': 1,
-        'CROP_SIZE': 300,
-        'VAL_CROP_SIZE': 300,
+        'CROP_SIZE': 500,
+        'VAL_CROP_SIZE': 500,
         'IMAGE_FOLDER_DIR': '/home/stoyelq/my_hot_storage/dfobot_working/ages/',
     }
     bot = ClassifierModel(num_outputs=1)

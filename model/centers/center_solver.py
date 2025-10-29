@@ -64,7 +64,7 @@ class CenterSolver(ClassifierSolver):
             self.make_solver_plots()
 
         self.print_and_log('Finished Training')
-        self.save_state()
+        self.save_state(best=True)
         self.make_solver_plots()
 
 

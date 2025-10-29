@@ -58,7 +58,7 @@ class ClassifierSolver(object):
         """
         # Set up some variables for book-keeping
         self.epoch = 0
-        self.best_val_acc = 0
+        self.best_val_acc = 9999
         self.best_params = {}
         self.loss_history = []
         self.train_acc_history = []
@@ -111,11 +111,11 @@ class ClassifierSolver(object):
             self.make_solver_plots()
 
         self.print_and_log('Finished Training')
-        self.save_state()
+        self.save_state(best=True)
         self.make_solver_plots()
         self.print_class_scores()
 
-    def save_state(self, epoch=None):
+    def save_state(self, epoch=None, best=False):
         weights_path = os.path.join(self.log_dir, 'trained_weights.pth')
         if epoch:
             if self.log_epochs:
@@ -125,7 +125,10 @@ class ClassifierSolver(object):
                 return
 
         # Save weights
-        torch.save(self.model.state_dict(), weights_path)
+        if best:
+            torch.save(self.best_params, weights_path)
+        else:
+            torch.save(self.model.state_dict(), weights_path)
 
     def get_acc(self, dataloader):
         correct = 0

@@ -6,11 +6,11 @@ from PIL import Image, ImageTk
 import torch
 from torchvision import transforms
 import model.solver as solver
-from model.model_utils import ClassifierModel
+from model.model_utils import ClassifierModel, AugmentedModel
 
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/train/"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/val/"
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/022__2025-10-23/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/049__2025-10-29/trained_weights.pth"
 DEVICE = "cuda:0"
 # labels = ["Good", "Crack", "Crystal", "Twin"]
 LABELS = ["Good", "Bad"]
@@ -24,9 +24,10 @@ def get_age_from_path(path):
     return result
 
 class ImageChecker:
-    def __init__(self, image_size=(224, 224)):
+    def __init__(self, image_size=(500, 500)):
         # model = ClassifierModel(num_outputs=len(LABELS))
         model = ClassifierModel(num_outputs=1)
+        model = AugmentedModel(num_outputs=1, metadata_length=1)
         model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
 
         self.model = model.eval()

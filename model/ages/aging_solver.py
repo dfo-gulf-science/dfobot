@@ -34,13 +34,13 @@ class AgingSolver(ClassifierSolver):
             for batch_index, data in enumerate(self.train_dataloader, 0):
                 # get the inputs; data is a list of [inputs, labels]
                 inputs, metadata, labels, uuid = data
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                inputs, metadata, labels = inputs.to(self.device), metadata.to(self.device), labels.to(self.device)
 
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
 
                 # forward + backward + optimize
-                outputs = self.model(inputs)
+                outputs = self.model(inputs, metadata)
                 loss = self.criterion(outputs, labels)
                 loss.backward()
                 self.optimizer.step()
@@ -59,36 +59,44 @@ class AgingSolver(ClassifierSolver):
             self.test_acc_history.append(test_acc)
             self.print_and_log(f'Epoch {epoch + 1} stats: Training accuracy: {train_acc}.     Test accuracy: {test_acc}.')
 
+            # Keep track of the best model
+            if test_acc < self.best_val_acc:
+                self.best_val_acc = test_acc
+                self.best_params = self.model.state_dict()
+
             # also save state:
             self.save_state(epoch=(epoch + 1))
             # make plots
             self.make_solver_plots()
 
         self.print_and_log('Finished Training')
-        self.save_state()
+        self.save_state(best=True)
         self.make_solver_plots()
 
 
     def get_acc(self, dataloader):
         correct = 0
         total = 0
+        total_error = 0
         # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
             for data in self.test_dataloader:
                 images, metadata, labels, uuid = data
-                images, labels = images.to(self.device), labels.to(self.device)
+                images, metadata, labels = images.to(self.device), metadata.to(self.device), labels.to(self.device)
 
                 # calculate outputs by running images through the network
-                outputs = self.model(images)
+                outputs = self.model(images, metadata)
                 # got to be within 1 year of real :
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
-                correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()
+                # correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()
+                total_error += torch.sum(torch.abs(outputs - labels)).cpu()
 
                 # real dumb way of setting max...
                 if total >= self.num_val_samples:
                     break
-        return 100 * correct // total
+        return total_error / total
+        # return 100 * correct // total
 
 
 

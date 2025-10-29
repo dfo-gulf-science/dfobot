@@ -1,5 +1,5 @@
 
-from model.model_utils import ImageFolderCustom, ClassifierModel
+from model.model_utils import ImageFolderCustom, ClassifierModel, AugmentedModel
 import os
 
 from torch.utils.data import Dataset
@@ -10,7 +10,7 @@ from torchvision.transforms import v2
 import torch
 
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv"
-METADATA_COLUMNS = ['annuli']
+METADATA_COLUMNS = ['dummy']
 
 
 class AgingImageFolderCustom(ImageFolderCustom):
@@ -24,17 +24,17 @@ class AgingImageFolderCustom(ImageFolderCustom):
         # make sure this function returns the label from the path
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
-        out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
+        out_metadata_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
         result = torch.tensor([float(metadata_row["annuli"])])
         uuid = metadata_row["uuid"]
-        return out_tensor, result, uuid
+        return out_metadata_tensor, result, uuid
 
 
 
 def get_aging_dataloaders(batch_size, max_size=None, config_dict=None):
     NUM_WORKERS = config_dict['NUM_WORKERS']
     CROP_SIZE = config_dict['CROP_SIZE']
-    VAL_CROP_SIZE = config_dict['VAL_CROP_SIZE']
+    VAL_CROP_SIZE =  config_dict['VAL_CROP_SIZE']
     IMAGE_FOLDER_DIR = config_dict['IMAGE_FOLDER_DIR']
 
     data_transforms = {
@@ -75,6 +75,7 @@ def get_aging_dataloaders(batch_size, max_size=None, config_dict=None):
 
 
 def get_aging_model(device):
-    model_conv = ClassifierModel(1)
+    # model_conv = ClassifierModel(1)
+    model_conv = AugmentedModel(num_outputs=1, metadata_length=1)
     model_conv.to(device)
     return model_conv
