@@ -3,7 +3,9 @@ import os
 import shutil
 import uuid
 
+import numpy as np
 import pandas as pd
+import shapely.wkt
 from PIL import Image
 from torchvision import transforms
 from torchvision.transforms import v2
@@ -54,6 +56,12 @@ def crop_and_save(img, contour, out_dir, buffer=5, outdim=(256, 256)):
             print("Could not save {out_dir}".format(out_dir=out_dir))
     except cv2.Error as e:
         print("Error {e}. Could not save {out_dir}".format(e=e, out_dir=out_dir))
+
+
+def crop_by_ccords(img, x1, y1, x2, y2, out_dir, outdim=(256, 256)):
+    cropped = img[y1:y2, x1:x2]
+    saved = cv2.imwrite(out_dir, cropped)
+
 
 
 def get_data_from_name(img_name, gt_df, herring):
@@ -206,6 +214,50 @@ def row_ager_and_writer(row, ages_writer, oracle_df):
         print(row)
 
 
+def copy_annotated():
+    SHARE_PATH = "/home/stoyelq/shares/otoliths_and_scales/Yellowtail-flounder"
+    LINES_PATH = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/lines.csv"
+    ANNOTATIONS_PATH = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/annotated/"
+    lines_df = pd.read_csv(LINES_PATH)
+    for root, dirs, files in os.walk(SHARE_PATH):
+        for dir in dirs:
+            for name in os.listdir(os.path.join(root, dir)):
+                if name in lines_df["image_filename"].values:
+                    src = os.path.join(root, dir, name)
+                    dst = os.path.join(ANNOTATIONS_PATH, lines_df[lines_df.image_filename == name].iloc[0].annotation_uuid)
+                    shutil.copy(src, f"{dst}.jpg")
+
+
+def get_centers_from_line(uuid, num_images):
+    LINES_PATH = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/lines.csv"
+    lines_df = pd.read_csv(LINES_PATH)
+    line_row = lines_df[lines_df.annotation_uuid == uuid].iloc[0]
+    linestring = shapely.wkt.loads(line_row.annotation_preferred_linestring)
+    coord_list = []
+    for coord in linestring.coords:
+        coord_list.append(coord)
+    # x0, y0, x1, y1
+    center_x, center_y, edge_x, edge_y= coord_list[0][0], coord_list[0][1], coord_list[1][0], coord_list[1][1]
+
+    image_centers = []
+    for i in range(num_images):
+        # Calculate the interpolation factor (t)
+        t = i / (num_images - 1)
+
+        # Linearly interpolate x and y coordinates
+        x = center_x + t * (edge_x - center_x)
+        y = center_y + t * (edge_y - center_y)
+        image_centers.append((int(x), int(y)))
+    return image_centers
+
+
+def get_dot_coord_list(uuid):
+    DOTS_PATH = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/dots.csv"
+    dots_df = pd.read_csv(DOTS_PATH)
+    annotation_df = dots_df[dots_df.annotation_uuid == uuid][["x", "y"]].astype(int)
+    dot_list = list(annotation_df.itertuples(index=False))
+    return dot_list
+
 
 def join_oracle_dump_to_metadata(herring):
     metadata = pd.read_csv(RAW_METADATA)
@@ -231,6 +283,41 @@ def wipe_ageless():
         if pd.isna(metadata_row.age):
             os.remove(os.path.join(target_dir, img_name))
     return
+
+def create_annotation_images():
+    in_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/annotated/"
+    out_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/dot_images"
+    num_images = 40
+    image_size = 150  # half
+    img_list = os.listdir(in_dir)
+
+    annotation_sheet_path = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/annotations.csv"
+    with open(annotation_sheet_path,'w') as annotations_sheet:
+        sheet_writer = csv.writer(annotations_sheet)
+        sheet_writer.writerow(["uuid", "is_dot"])
+
+        for image_name in img_list:
+            img_path = in_dir + image_name
+            pil_img = Image.open(img_path).convert("RGB")
+
+            img_uuid = image_name.split(".")[0]
+            dot_list = np.array(get_dot_coord_list(img_uuid))
+            centers_list = np.array(get_centers_from_line(img_uuid, num_images))
+
+            # get the closest dot on the ref line to every annotation dot
+            dot_centers = []
+            for dot in dot_list:
+                dists = np.linalg.norm(centers_list-dot, axis=1)
+                min_index = np.argmin(dists)
+                dot_centers.append(centers_list[min_index])
+
+            for center in centers_list:
+                new_uuid = str(uuid.uuid4())
+                cropped = pil_img.crop((center[0] - image_size, center[1] - image_size, center[0] + image_size, center[1] + image_size))
+                dst = os.path.join(out_dir, f"{new_uuid}.jpg")
+                cropped.save(dst)
+                sheet_writer.writerow([new_uuid, (center == dot_centers).all(axis=1).any()])
+    return
 #
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/plaice/"
 # crop_and_isolate(herring=False)
@@ -241,4 +328,7 @@ def wipe_ageless():
 # IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/sorted/goodness/Good/"
 # train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
-wipe_ageless()
+# wipe_ageless()
+# copy_annotated()
+
+create_annotation_images()

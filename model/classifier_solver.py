@@ -1,4 +1,5 @@
 import csv
+import pickle
 import time
 
 import matplotlib.pyplot as plt
@@ -58,11 +59,12 @@ class ClassifierSolver(object):
         """
         # Set up some variables for book-keeping
         self.epoch = 0
-        self.best_val_acc = 9999
+        self.best_val_acc = 0
         self.best_params = {}
         self.loss_history = []
         self.train_acc_history = []
         self.test_acc_history = []
+        self.test_offset_history = []
 
 
     def train(self):
@@ -112,6 +114,7 @@ class ClassifierSolver(object):
 
         self.print_and_log('Finished Training')
         self.save_state(best=True)
+        self.save_model()
         self.make_solver_plots()
         self.print_class_scores()
 
@@ -129,6 +132,12 @@ class ClassifierSolver(object):
             torch.save(self.best_params, weights_path)
         else:
             torch.save(self.model.state_dict(), weights_path)
+
+    def save_model(self):
+        model_path = os.path.join(self.log_dir, 'model.pkl')
+        with open(model_path, 'wb') as model_file:
+            pickle.dump(self.model, model_file)
+
 
     def get_acc(self, dataloader):
         correct = 0

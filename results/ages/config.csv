@@ -1,0 +1,14 @@
+IMAGE_FOLDER_DIR,/home/stoyelq/my_hot_storage/dfobot_working/ages/
+get_dataloaders,<function get_aging_dataloaders at 0x77634e619760>
+NUM_WORKERS,4
+VAL_CROP_SIZE,500
+BATCH_SIZE,20
+PRINT_EVERY,25
+MAX_DATA,
+NUM_EPOCHS,20
+LOG_EPOCHS,False
+ACC_SAMPLES,200
+ACC_VAL_SAMPLES,200
+CROP_SIZE,500
+LEARNING_RATE,0.0001
+WEIGHT_DECAY,1e-05

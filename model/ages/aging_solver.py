@@ -53,14 +53,15 @@ class AgingSolver(ClassifierSolver):
                     running_loss = 0.0
 
             # every epoch, get accuracy stats:
-            train_acc = self.get_acc(self.train_dataloader)
-            test_acc = self.get_acc(self.test_dataloader)
+            train_acc = self.get_acc(self.train_dataloader)[0]
+            test_acc, test_offset = self.get_acc(self.test_dataloader)
             self.train_acc_history.append(train_acc)
             self.test_acc_history.append(test_acc)
-            self.print_and_log(f'Epoch {epoch + 1} stats: Training accuracy: {train_acc}.     Test accuracy: {test_acc}.')
+            self.test_offset_history.append(test_offset)
+            self.print_and_log(f'Epoch {epoch + 1} stats: Training accuracy: {train_acc}.     Test accuracy: {test_acc}.   Test offset: {test_offset}.')
 
             # Keep track of the best model
-            if test_acc < self.best_val_acc:
+            if test_acc > self.best_val_acc:
                 self.best_val_acc = test_acc
                 self.best_params = self.model.state_dict()
 
@@ -89,14 +90,16 @@ class AgingSolver(ClassifierSolver):
                 # got to be within 1 year of real :
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
-                # correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()
+                correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()
                 total_error += torch.sum(torch.abs(outputs - labels)).cpu()
 
                 # real dumb way of setting max...
                 if total >= self.num_val_samples:
                     break
-        return total_error / total
-        # return 100 * correct // total
+        # return total_error / total
+        acc = 100 * correct // total
+        offset = total_error / total
+        return acc, offset
 
 
 

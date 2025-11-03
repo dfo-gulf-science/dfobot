@@ -436,3 +436,46 @@ def make_bot_plot(bot, num_samples, dataloader, device, title):
     plt.show()
 
     return y_pred, y_true
+
+def make_goodness_diff_bot_plot(bot, goodness_bot, num_batches, dataloader, device, title):
+    y_pred = []
+    y_true_noised = []
+    diff = []
+    goodness = []
+    y_true = []
+    bot.eval()
+    bot.to(device)
+    goodness_bot.eval()
+    goodness_bot.to(device)
+    with torch.no_grad():
+        for i in range(num_batches):
+            images, data, labels, uuids = next(iter(dataloader))
+            images = images.to(device)
+            data = data.to(device)
+            labels = labels.to(device)
+            scores = bot(images, data)
+            output = goodness_bot(images)
+
+            scores = scores.detach().cpu()
+            labels = labels.detach().cpu()
+            diff.append((scores - labels).T[0])
+
+            LABELS = [0, 1, 2, 3, 4, 5, 6, 7]
+            batch_goodness = torch.tensor(LABELS[int(torch.max(output[0], 0)[1].item())]).cpu()
+
+            # batch_goodness = batch_goodness.detach().cpu()
+            goodness.append(batch_goodness.T[0,])
+
+            torch.cuda.empty_cache()
+
+    diff = torch.cat(diff)
+    goodness = torch.cat(goodness)
+    plt.scatter(goodness.tolist(), diff.tolist())
+    plt.xlabel("Goodness")
+    plt.ylabel("Predicted - Real")
+    plt.plot([0, 0], [-3, 3])
+    plt.plot( [-3, 3], [0, 0])
+    plt.title(title)
+    plt.show()
+
+    return y_pred, y_true

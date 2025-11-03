@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from fontTools.misc.classifyTools import Classifier
 from torch import nn, optim
@@ -97,7 +98,7 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
 class BaseModel(nn.Module):
     def __init__(self, all_layers):
         super(BaseModel, self).__init__()
-        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
+        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
 
         # freeze inner layers, if called for:
         for param in self.cnn.parameters():
@@ -114,7 +115,7 @@ class BaseModel(nn.Module):
 class ClassifierModel(nn.Module):
     def __init__(self, num_outputs):
         super(ClassifierModel, self).__init__()
-        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
+        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
 
         # freeze inner layers, if called for:
         for param in self.cnn.parameters():
@@ -135,7 +136,7 @@ class AugmentedModel(nn.Module):
     def __init__(self, num_outputs, metadata_length):
         super(AugmentedModel, self).__init__()
         meta_data_length = metadata_length
-        self.cnn = models.resnet152(weights='IMAGENET1K_V2')
+        self.cnn = models.resnet50(weights='IMAGENET1K_V2')
 
         self.cnn.fc = nn.Linear(
             self.cnn.fc.in_features, self.cnn_out_size)
@@ -174,3 +175,9 @@ def get_augmented_model(device, all_layers):
     model_conv = AugmentedModel(all_layers)
     model_conv.to(device)
     return model_conv
+
+def load_model_from_log_file(log_file_path):
+    pickle_path = os.path.join(log_file_path, 'model.pkl')
+    with open(pickle_path, 'rb') as model_file:
+        model = pickle.load(model_file)
+    return model

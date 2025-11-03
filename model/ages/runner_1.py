@@ -18,6 +18,6 @@ config_dict = {
     "ACC_VAL_SAMPLES": 100,
 }
 
-run_aging_solver(device="cuda:0", config_dict=config_dict)
+run_aging_solver(device="cuda:1", config_dict=config_dict)
            # load_checkpoint="/home/stoyelq/my_hot_storage/dfobot_working/run_logs/049__2025-10-06/epochs/epoch_82.pkl")
 
