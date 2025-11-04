@@ -8,33 +8,34 @@ from torchvision import transforms
 import model.solver as solver
 from model.model_utils import ClassifierModel, AugmentedModel, load_model_from_log_file
 
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/val/"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/dots/val/"
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-# WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/009__2025-10-28/trained_weights.pth"
-WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/goodness/trained_weights.pth"
-LOG_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/056__2025-11-03"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/066__2025-11-04/trained_weights.pth"
+# WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/goodness/trained_weights.pth"
+# LOG_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/056__2025-11-03"
+# LOG_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/062__2025-11-04"
 DEVICE = "cuda:0"
 # labels = ["Good", "Crack", "Crystal", "Twin"]
-# LABELS = ["Good", "Bad"]
-LABELS = ["0", "1", "2", "3", "4", "5", "6", "7"]
+LABELS = ["No dot", "Dot"]
+# LABELS = ["0", "1", "2", "3", "4", "5", "6", "7"]
 
 
 def get_age_from_path(path):
-    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv")
+    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/dots/dots.csv")
     # make sure this function returns the label from the path
     uuid = path.split(".")[0]
     metadata_row = metadata_df[(metadata_df["uuid"] == uuid)].iloc[0]
-    result = torch.tensor([float(metadata_row["annuli"])])
+    result = torch.tensor([float(metadata_row["is_dot"])])
     return result
 
 class ImageChecker:
-    def __init__(self, image_size=(500, 500)):
-        # model = ClassifierModel(num_outputs=len(LABELS))
+    def __init__(self, image_size=(300, 300)):
+        model = ClassifierModel(num_outputs=len(LABELS))
         # model = ClassifierModel(num_outputs=2)
         # model = AugmentedModel(num_outputs=1, metadata_length=1)
-        # model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
+        model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
 
-        model = load_model_from_log_file(LOG_PATH)
+        # model = load_model_from_log_file(LOG_PATH)
 
         self.model = model.eval()
         self.image_dir = IMAGE_DIR
@@ -70,7 +71,7 @@ class ImageChecker:
     def display_image(self):
         img_path = self.image_paths[self.index]
         pil_img = Image.open(img_path).convert("RGB")
-        display_img = pil_img.resize((512, 512))
+        display_img = pil_img.resize((300, 300))
         tk_img = ImageTk.PhotoImage(display_img)
         self.canvas.config(image=tk_img)
         self.canvas.image = tk_img

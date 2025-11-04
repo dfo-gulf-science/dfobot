@@ -120,6 +120,7 @@ class ClassifierSolver(object):
 
     def save_state(self, epoch=None, best=False):
         weights_path = os.path.join(self.log_dir, 'trained_weights.pth')
+        best_path = os.path.join(self.log_dir, 'best_weights.pth')
         if epoch:
             if self.log_epochs:
                 weights_path = os.path.join(self.log_dir, 'epochs', f'epoch_{epoch + 1}_weights.pth')
@@ -128,10 +129,9 @@ class ClassifierSolver(object):
                 return
 
         # Save weights
+        torch.save(self.model.state_dict(), weights_path)
         if best:
-            torch.save(self.best_params, weights_path)
-        else:
-            torch.save(self.model.state_dict(), weights_path)
+            torch.save(self.best_params, best_path)
 
     def save_model(self):
         model_path = os.path.join(self.log_dir, 'model.pkl')

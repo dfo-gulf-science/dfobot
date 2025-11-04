@@ -57,3 +57,4 @@ Note that there was a fairly low hit count for all of the classes other than goo
 
 ## Takeaways:
  - There was no obvious correlation between image goodness and error on annuli count
+ - sliding window dot detection approach (is_dot) does not work due to translational invariance of CNN's

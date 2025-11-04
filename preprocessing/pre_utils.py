@@ -323,12 +323,12 @@ def create_annotation_images():
 # crop_and_isolate(herring=False)
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 # crop_and_isolate()
-#
-# OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages/"
-# IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/sorted/goodness/Good/"
-# train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
+# #
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/dots/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/dot_images"
+train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # wipe_ageless()
 # copy_annotated()
 
-create_annotation_images()
+# create_annotation_images()
