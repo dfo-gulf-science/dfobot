@@ -1,0 +1,43 @@
+Epoch 1 stats: Training accuracy: 84.     Test accuracy: 91.
+Epoch 2 stats: Training accuracy: 82.     Test accuracy: 90.
+Epoch 3 stats: Training accuracy: 86.     Test accuracy: 91.
+Epoch 4 stats: Training accuracy: 91.     Test accuracy: 91.
+Epoch 5 stats: Training accuracy: 83.     Test accuracy: 91.
+Epoch 6 stats: Training accuracy: 90.     Test accuracy: 90.
+Epoch 7 stats: Training accuracy: 85.     Test accuracy: 91.
+Epoch 8 stats: Training accuracy: 86.     Test accuracy: 92.
+Epoch 9 stats: Training accuracy: 85.     Test accuracy: 90.
+Epoch 10 stats: Training accuracy: 86.     Test accuracy: 91.
+Epoch 11 stats: Training accuracy: 84.     Test accuracy: 91.
+Epoch 12 stats: Training accuracy: 89.     Test accuracy: 88.
+Epoch 13 stats: Training accuracy: 87.     Test accuracy: 90.
+Epoch 14 stats: Training accuracy: 87.     Test accuracy: 89.
+Epoch 15 stats: Training accuracy: 90.     Test accuracy: 91.
+Epoch 16 stats: Training accuracy: 91.     Test accuracy: 89.
+Epoch 17 stats: Training accuracy: 86.     Test accuracy: 90.
+Epoch 18 stats: Training accuracy: 86.     Test accuracy: 89.
+Epoch 19 stats: Training accuracy: 92.     Test accuracy: 88.
+Epoch 20 stats: Training accuracy: 90.     Test accuracy: 88.
+Epoch 21 stats: Training accuracy: 93.     Test accuracy: 87.
+Epoch 22 stats: Training accuracy: 90.     Test accuracy: 91.
+Epoch 23 stats: Training accuracy: 93.     Test accuracy: 88.
+Epoch 24 stats: Training accuracy: 95.     Test accuracy: 89.
+Epoch 25 stats: Training accuracy: 92.     Test accuracy: 87.
+Epoch 26 stats: Training accuracy: 94.     Test accuracy: 87.
+Epoch 27 stats: Training accuracy: 93.     Test accuracy: 86.
+Epoch 28 stats: Training accuracy: 93.     Test accuracy: 91.
+Epoch 29 stats: Training accuracy: 95.     Test accuracy: 91.
+Epoch 30 stats: Training accuracy: 95.     Test accuracy: 89.
+Epoch 31 stats: Training accuracy: 96.     Test accuracy: 84.
+Epoch 32 stats: Training accuracy: 97.     Test accuracy: 90.
+Epoch 33 stats: Training accuracy: 96.     Test accuracy: 88.
+Epoch 34 stats: Training accuracy: 96.     Test accuracy: 88.
+Epoch 35 stats: Training accuracy: 95.     Test accuracy: 89.
+Epoch 36 stats: Training accuracy: 95.     Test accuracy: 88.
+Epoch 37 stats: Training accuracy: 99.     Test accuracy: 88.
+Epoch 38 stats: Training accuracy: 99.     Test accuracy: 86.
+Epoch 39 stats: Training accuracy: 97.     Test accuracy: 90.
+Epoch 40 stats: Training accuracy: 98.     Test accuracy: 89.
+Finished Training
+Accuracy for class: Narrow is 94.6 %
+Accuracy for class: Wide  is 40.0 %

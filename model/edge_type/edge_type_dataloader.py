@@ -14,17 +14,17 @@ METADATA_COLUMNS = ['edge_type' ]
 
 class EdgeTypeImageFolderCustom(ImageFolderCustom):
 
-    def __init__(self, targ_dir, transform=None):
+    def __init__(self, targ_dir, transform=None, col_name="width"):
         super().__init__(targ_dir, transform)
         self.metadata_df = pd.read_csv(METADATA_CSV_PATH)
-
+        self.col_name = col_name
 
     def get_metadata(self, path):
         # make sure this function returns the label from the path
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
         out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
-        result = int(metadata_row["edge_type"])
+        result = int(metadata_row[self.col_name])
         uuid = metadata_row["uuid"]
         return out_tensor, result, uuid
 
@@ -35,6 +35,7 @@ def get_edge_type_dataloader(batch_size, max_size=None, config_dict=None):
     CROP_SIZE = config_dict['CROP_SIZE']
     VAL_CROP_SIZE = config_dict['VAL_CROP_SIZE']
     IMAGE_FOLDER_DIR = config_dict['IMAGE_FOLDER_DIR']
+    COL_NAME = config_dict['COL_NAME']
 
     data_transforms = {
         'train': transforms.Compose([
@@ -57,7 +58,7 @@ def get_edge_type_dataloader(batch_size, max_size=None, config_dict=None):
     }
 
     data_dir = IMAGE_FOLDER_DIR
-    image_datasets = {x: EdgeTypeImageFolderCustom(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
+    image_datasets = {x: EdgeTypeImageFolderCustom(os.path.join(data_dir, x), data_transforms[x], col_name=COL_NAME) for x in ['train', 'val']}
 
     if max_size is not None:
         image_datasets['train'] = torch.utils.data.Subset(image_datasets["train"], torch.arange(max_size))

@@ -144,13 +144,13 @@ class ClassifierSolver(object):
         total = 0
         # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
-            for data in self.test_dataloader:
+            for data in dataloader:
                 images, metadata, labels, uuid = data
                 images, labels = images.to(self.device), labels.to(self.device)
 
                 # calculate outputs by running images through the network
                 outputs = self.model(images)
-                # the class with the highest energy is what we choose as prediction
+                # the class with the highest score is what we choose as prediction
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -202,7 +202,7 @@ class ClassifierSolver(object):
         for classname, correct_count in correct_pred.items():
             if total_pred[classname] > 0:
                 accuracy = 100 * float(correct_count) / total_pred[classname]
-                self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+                self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f}%  ({int(correct_count)}/{total_pred[classname]})')
 
 
 def run_class_solver(device, config_dict=None, load_checkpoint=None, classes=None):

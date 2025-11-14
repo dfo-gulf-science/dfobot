@@ -10,7 +10,7 @@ from torchvision.transforms import v2
 import torch
 
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv"
-METADATA_COLUMNS = ['dummy']
+METADATA_COLUMNS = ['edge_type']
 
 
 class AgingImageFolderCustom(ImageFolderCustom):

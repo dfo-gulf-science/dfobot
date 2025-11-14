@@ -2,11 +2,12 @@ from model.ages.aging_dataloader import get_aging_dataloaders
 from model.ages.aging_solver import AgingSolver
 from model.goodness.goodness_dataloader import get_goodness_dataloader
 from model.model_utils import ClassifierModel, load_model_from_log_file
-from model.solver import run_solver, make_solver_plots, make_bot_plot, make_goodness_diff_bot_plot
+from model.solver import run_solver, make_solver_plots, make_bot_plot, make_goodness_diff_bot_plot, \
+    make_edge_type_diff_bot_plot
 import torch
 import gc
 
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/009__2025-10-28/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/ages/trained_weights.pth"
 device = "cuda:1"
 def get_dfobot():
     config_dict = {
@@ -26,7 +27,9 @@ def get_goodnessbot():
     return bot
 
 def get_edge_type_bot():
-    return load_model_from_log_file("/home/stoyelq/my_hot_storage/dfobot_working/run_logs/056__2025-11-03/")
+    model = ClassifierModel(num_outputs=8)
+    model.load_state_dict(torch.load("/home/stoyelq/Desktop/work/dfobot/results/edge_type/trained_weights.pth", weights_only=True))
+    return model
 
 def get_next_image_prediction(dataloader, bot, goodness_bot, device):
     images, data, labels, uuids = next(iter(dataloader))
@@ -49,4 +52,5 @@ import matplotlib.pyplot as plt
 # plt.show()
 
 # y_pred, y_true = make_bot_plot(bot, 100, dataloader, device, title=str(WEIGHTS_PATH.split("/")[-2]))
-y_pred, y_true = make_goodness_diff_bot_plot(bot, edge_type_bot, 10, dataloader, device, title=str(WEIGHTS_PATH.split("/")[-2]))
+# y_pred, y_true = make_goodness_diff_bot_plot(bot, edge_type_bot, 10, dataloader, device, title=str(WEIGHTS_PATH.split("/")[-2]))
+y_pred, y_true = make_edge_type_diff_bot_plot(bot, edge_type_bot, 100, dataloader, device, title=str(WEIGHTS_PATH.split("/")[-2]))

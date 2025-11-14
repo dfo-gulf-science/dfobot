@@ -73,7 +73,7 @@ class CenterSolver(ClassifierSolver):
         total = 0
         # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
-            for data in self.test_dataloader:
+            for data in dataloader:
                 images, metadata, labels, uuid = data
                 images, labels = images.to(self.device), labels.to(self.device)
 

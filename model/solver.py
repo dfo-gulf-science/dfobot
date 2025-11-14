@@ -461,10 +461,10 @@ def make_goodness_diff_bot_plot(bot, goodness_bot, num_batches, dataloader, devi
             diff.append((scores - labels).T[0])
 
             LABELS = [0, 1, 2, 3, 4, 5, 6, 7]
-            batch_goodness = torch.tensor(LABELS[int(torch.max(output[0], 0)[1].item())]).cpu()
+            batch_goodness = torch.max(output, 1).indices.cpu()
 
             # batch_goodness = batch_goodness.detach().cpu()
-            goodness.append(batch_goodness.T[0,])
+            goodness.append(batch_goodness)
 
             torch.cuda.empty_cache()
 
@@ -472,6 +472,54 @@ def make_goodness_diff_bot_plot(bot, goodness_bot, num_batches, dataloader, devi
     goodness = torch.cat(goodness)
     plt.scatter(goodness.tolist(), diff.tolist())
     plt.xlabel("Goodness")
+    plt.ylabel("Predicted - Real")
+    plt.plot([0, 0], [-3, 3])
+    plt.plot( [-3, 3], [0, 0])
+    plt.title(title)
+    plt.show()
+
+    return y_pred, y_true
+
+
+def make_edge_type_diff_bot_plot(bot, edge_bot, num_batches, dataloader, device, title):
+    y_pred = []
+    y_true_noised = []
+    diff = []
+    edges = []
+    corectness = []
+    y_true = []
+    bot.eval()
+    bot.to(device)
+    edge_bot.eval()
+    edge_bot.to(device)
+    with torch.no_grad():
+        for i in range(num_batches):
+            images, data, labels, uuids = next(iter(dataloader))
+            images = images.to(device)
+            data = data.to(device)
+            labels = labels.to(device)
+            scores = bot(images, data)
+            output = edge_bot(images)
+
+            scores = scores.detach().cpu()
+            labels = labels.detach().cpu()
+            diff.append((scores - labels).T[0])
+
+            LABELS = [0, 1, 2, 3, 4, 5, 6, 7]
+            batch_edges = torch.max(output, 1).indices.cpu()
+            batch_correctness = batch_edges == data.cpu()
+            edges.append(data.cpu())
+            corectness.append(batch_correctness)
+
+            torch.cuda.empty_cache()
+
+    diff = torch.cat(diff)
+    edge_data = torch.cat(edges)
+    all_corectness = torch.cat(corectness)
+
+    colors = ["b" if correct else "r" for correct in all_corectness]
+    plt.scatter(edge_data.tolist(), diff.tolist(), c=colors)
+    plt.xlabel("Edge type")
     plt.ylabel("Predicted - Real")
     plt.plot([0, 0], [-3, 3])
     plt.plot( [-3, 3], [0, 0])

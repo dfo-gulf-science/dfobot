@@ -34,7 +34,7 @@ config_dict = {
 
 def get_hyper_log_dir():
     try:
-        max_count = max([int(file_name[4:7])for file_name in os.listdir(LOG_DIR) if "hyper" in file_name])
+        max_count = max([int(file_name[7:10])for file_name in os.listdir(LOG_DIR) if "hyper" in file_name])
         run_count = str(max_count + 1).zfill(3)
     except ValueError:
         run_count = '002'
