@@ -157,22 +157,65 @@ def crop_and_isolate():
                 print(img_name)
                 raise Exception(e)
 
+def crop_and_transform(img_path, coords, out_path):
+    outdim = OUT_DIM
+    # clip on threshold and convert to grayscale:
+    img = cv2.imread(img_path)
+    ret, thresh = cv2.threshold(img, 60, 255, 0)
+    imgray = cv2.cvtColor(thresh, cv2.COLOR_BGR2GRAY)
+    buffer = BUFFER_PX
+    # Find contours and sort using contour area
+    contours = cv2.findContours(imgray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    # grab largest contour containing center point:
+    center_x, center_y, edge_x, edge_y = coords
+    for contour in contours:
+        # save largest contour containing center:
+        rect = cv2.boundingRect(contour)  # x, y, w, h
+        x1 = max(rect[0] - buffer, 0)
+        y1 = max(rect[1] - buffer, 0)
+        x2 = min((rect[0] + rect[2]) + buffer, img.shape[1])
+        y2 = min((rect[1] + rect[3]) + buffer, img.shape[0])
+        if x1 < center_x < x2 and y1 < center_y < y2:
+            cropped = img[y1:y2, x1:x2]
+            height = y2 - y1
+            width = x2 - x1
 
-    # csv_name = "metadata_herring.csv" if herring else "metadata_plaice.csv"
-    # metadata_df.to_csv(METADATA_DIR + csv_name, index=False)
+            # step 1, shift points by crop:
+            center_x = center_x - x1
+            center_y = center_y - y1
+            edge_x = edge_x - x1
+            edge_y = edge_y - y1
 
-    # fish_data, fish_age, fish_uuid = get_data_from_name(img_name, gt_df, herring)
+            scaled_outdim = None
+            if width > height:
+                scaled_outdim = (outdim[0], int(outdim[1] * height / width))
+                scale_factor = outdim[0] / width
+                center_x = center_x  * scale_factor
+                center_y = center_y  * scale_factor
+                edge_x = edge_x  * scale_factor
+                edge_y = edge_y  * scale_factor
 
-    # if fish_age is None:
-    #     continue
+            else:
+                scaled_outdim = (int(outdim[0] * width / height), outdim[1])
+                scale_factor = outdim[1] / height
+                center_x = center_x  * scale_factor
+                center_y = center_y  * scale_factor
+                edge_x = edge_x  * scale_factor
+                edge_y = edge_y  * scale_factor
 
-    # photo_count = int(img_name.split("photo")[1][1]) if "photo" in img_name else 1
+            left_pad = outdim[0] - scaled_outdim[0]
+            top_pad = outdim[1] - scaled_outdim[1]
 
-    # visualization tool:
-    # cv2.drawContours(img, [cnts[1]], -1, (36,255,12), 3)
-    # cv2.imshow('image', img)
-    # cv2.waitKey()
-    # cv2.destroyAllWindows()
+            center_x = center_x + left_pad
+            center_y = center_y + top_pad
+            edge_x = edge_x + left_pad
+            edge_y = edge_y + top_pad
+
+            scaled = cv2.resize(cropped, dsize=scaled_outdim)
+            padded = cv2.copyMakeBorder(scaled, top_pad, 0, left_pad, 0, cv2.BORDER_CONSTANT, None, value=0)
+            saved = cv2.imwrite(out_path, padded)
+            return max(0, int(center_x)), max(0, int(center_y)), max(0, int(edge_x)), max(0, int(edge_y))
 
 def train_val_splitter(in_dir, out_dir, split=0.9):
     img_list = os.listdir(in_dir)
@@ -258,6 +301,18 @@ def get_dot_coord_list(uuid):
     dot_list = list(annotation_df.itertuples(index=False))
     return dot_list
 
+def get_line_coord_list(uuid):
+    LINES_PATH = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/lines.csv"
+    lines_df = pd.read_csv(LINES_PATH)
+    line_row = lines_df[lines_df.annotation_uuid == uuid].iloc[0]
+    linestring = shapely.wkt.loads(line_row.annotation_preferred_linestring)
+    coord_list = []
+    for coord in linestring.coords:
+        coord_list.append(coord)
+    # x0, y0, x1, y1
+    center_x, center_y, edge_x, edge_y = coord_list[0][0], coord_list[0][1], coord_list[1][0], coord_list[1][1]
+    return center_x, center_y, edge_x, edge_y
+
 
 def join_oracle_dump_to_metadata(herring):
     metadata = pd.read_csv(RAW_METADATA)
@@ -318,17 +373,41 @@ def create_annotation_images():
                 cropped.save(dst)
                 sheet_writer.writerow([new_uuid, (center == dot_centers).all(axis=1).any()])
     return
+
+
+def create_ref_line_images():
+    in_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/annotated/"
+    out_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_line"
+    img_list = os.listdir(in_dir)
+
+    annotation_sheet_path = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_line.csv"
+    with open(annotation_sheet_path,'w') as annotations_sheet:
+        sheet_writer = csv.writer(annotations_sheet)
+        sheet_writer.writerow(["uuid", "center_x", "center_y", "edge_x", "edge_y"])
+
+        for image_name in img_list:
+            img_path = in_dir + image_name
+            out_path = os.path.join(out_dir,image_name)
+            pil_img = Image.open(img_path).convert("RGB")
+
+            img_uuid = image_name.split(".")[0]
+            line_coords = np.array(get_line_coord_list(img_uuid))
+
+            new_coords = crop_and_transform(img_path, line_coords, out_path)
+            sheet_writer.writerow([img_uuid, new_coords[0], new_coords[1], new_coords[2], new_coords[3]])
+    return
 #
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/plaice/"
 # crop_and_isolate(herring=False)
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 # crop_and_isolate()
 # #
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/dots/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/dot_images"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_edge"
 train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # wipe_ageless()
 # copy_annotated()
 
 # create_annotation_images()
+# create_ref_line_images()

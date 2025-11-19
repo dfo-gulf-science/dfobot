@@ -166,6 +166,7 @@ def get_classifier_model(device, num_classes):
     model_conv.to(device)
     return model_conv
 
+
 def get_center_model(device):
     model_conv = ClassifierModel(2)
     model_conv.to(device)

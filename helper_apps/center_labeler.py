@@ -7,8 +7,8 @@ import csv
 
 # Directories
 IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw/"
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/centers/"
-CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/centers.csv"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_edge/"
+CSV_FILE = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_edges.csv"
 
 # Create out directory if it doesn't exist
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -25,8 +25,8 @@ class GoodnessLabelerApp:
         self.current_index = 0
         self.history = []
 
-        self.image_height = 600
-        self.image_width = 600
+        self.image_height = 1000
+        self.image_width = 1000
 
         self.image_label = tk.Label(root)
         self.image_label.pack(pady=10)

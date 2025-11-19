@@ -2,16 +2,16 @@ from center_solver import run_center_solver
 from model.centers.centers_dataloader import get_center_dataloaders
 
 config_dict = {
-    "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/centers/",
+    "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/",
     "get_dataloaders": get_center_dataloaders,
     "NUM_WORKERS": 4,
-    "CROP_SIZE": 224,
-    "VAL_CROP_SIZE": 224,
-    "LEARNING_RATE": 1e-4,
+    "CROP_SIZE": 500,
+    "VAL_CROP_SIZE": 500,
+    "LEARNING_RATE": 5e-5,
     "BATCH_SIZE": 10,
     "PRINT_EVERY": 25,
     "MAX_DATA": None,
-    "NUM_EPOCHS": 200,
+    "NUM_EPOCHS": 10,
     "WEIGHT_DECAY": 1e-6,
     "ACC_SAMPLES": 100,
     "ACC_VAL_SAMPLES": 100,

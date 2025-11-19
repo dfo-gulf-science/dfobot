@@ -9,10 +9,10 @@ from torchvision import transforms
 from torchvision.transforms import v2
 import torch
 
-METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/ref_edges.csv"
-METADATA_COLUMNS = ['x', 'y' ]
+METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ref_line/ref_line.csv"
+METADATA_COLUMNS = ['center_x', 'center_y' ]
 
-class CenterImageFolderCustom(ImageFolderCustom):
+class RefLineImageFolderCustom(ImageFolderCustom):
 
     def __init__(self, targ_dir, transform=None):
         super().__init__(targ_dir, transform)
@@ -24,13 +24,13 @@ class CenterImageFolderCustom(ImageFolderCustom):
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
         out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
-        result = torch.tensor([float(metadata_row["x"]), float(metadata_row["y"])])
+        result = torch.tensor([float(metadata_row["center_x"]), float(metadata_row["center_y"]), float(metadata_row["edge_x"]), float(metadata_row["edge_y"])]) / 1000 # /2
         uuid = metadata_row["uuid"]
         return out_tensor, result, uuid
 
 
 
-def get_center_dataloaders(batch_size, max_size=None, config_dict=None):
+def get_ref_line_dataloaders(batch_size, max_size=None, config_dict=None):
     NUM_WORKERS = config_dict['NUM_WORKERS']
     CROP_SIZE = config_dict['CROP_SIZE']
     VAL_CROP_SIZE = config_dict['VAL_CROP_SIZE']
@@ -57,7 +57,7 @@ def get_center_dataloaders(batch_size, max_size=None, config_dict=None):
     }
 
     data_dir = IMAGE_FOLDER_DIR
-    image_datasets = {x: CenterImageFolderCustom(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
+    image_datasets = {x: RefLineImageFolderCustom(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
 
     if max_size is not None:
         image_datasets['train'] = torch.utils.data.Subset(image_datasets["train"], torch.arange(max_size))
@@ -72,8 +72,7 @@ def get_center_dataloaders(batch_size, max_size=None, config_dict=None):
     return dataloaders, dataset_sizes
 
 
-
-def get_center_model(device):
-    model_conv = ClassifierModel(2)
+def get_ref_line_model(device):
+    model_conv = ClassifierModel(4)
     model_conv.to(device)
     return model_conv
