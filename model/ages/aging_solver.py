@@ -1,0 +1,145 @@
+import csv
+import time
+
+import torch
+from torch import nn, optim
+import os
+
+from model.ages.aging_dataloader import get_aging_dataloaders, get_aging_model
+
+from model.classifier_solver import ClassifierSolver
+
+from model.solver import get_run_log_dir
+
+
+class AgingSolver(ClassifierSolver):
+
+    def __init__(self, model, criterion, optimizer, config_dict, **kwargs):
+        super().__init__(model, criterion, optimizer, config_dict, **kwargs)
+        dataloaders, dataset_sizes = get_aging_dataloaders(self.batch_size, self.max_data, config_dict=config_dict)
+        self.test_dataloader = dataloaders["val"]
+        self.train_dataloader = dataloaders["train"]
+
+
+    def train(self):
+        start_time = time.time()
+        for epoch in range(self.num_epochs):  # loop over the dataset multiple times
+            running_loss = 0.0
+            num_train = self.dataset_sizes["train"]
+            if self.max_data:
+                num_train = self.max_data
+            iterations_per_epoch = max(num_train // self.batch_size, 1)
+            num_iterations = self.num_epochs * iterations_per_epoch
+
+            for batch_index, data in enumerate(self.train_dataloader, 0):
+                # get the inputs; data is a list of [inputs, labels]
+                inputs, metadata, labels, uuid = data
+                inputs, metadata, labels = inputs.to(self.device), metadata.to(self.device), labels.to(self.device)
+
+                # zero the parameter gradients
+                self.optimizer.zero_grad()
+
+                # forward + backward + optimize
+                outputs = self.model(inputs, metadata)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+
+                # print statistics
+                running_loss += loss.item()
+                self.loss_history.append(loss.item())
+                if batch_index % self.print_every == (self.print_every - 1):  # print every 2000 mini-batches
+                    self.print_and_log(f'(Time {(time.time() - start_time):.2f} sec;) [{epoch + 1}/{self.num_epochs}, {batch_index + 1:5d}/{iterations_per_epoch}] loss: {running_loss / self.print_every:.3f}')
+                    running_loss = 0.0
+
+            # every epoch, get accuracy stats:
+            train_acc = self.get_acc(self.train_dataloader)[0]
+            test_acc, test_offset = self.get_acc(self.test_dataloader)
+            self.train_acc_history.append(train_acc)
+            self.test_acc_history.append(test_acc)
+            self.test_offset_history.append(test_offset)
+            self.print_and_log(f'Epoch {epoch + 1} stats: Training accuracy: {train_acc}.     Test accuracy: {test_acc}.   Test offset: {test_offset}.')
+
+            # Keep track of the best model
+            if test_acc > self.best_val_acc:
+                self.best_val_acc = test_acc
+                self.best_params = self.model.state_dict()
+
+            # also save state:
+            self.save_state(epoch=(epoch + 1))
+            # make plots
+            self.make_solver_plots()
+
+        self.print_and_log('Finished Training')
+        self.save_state(best=True)
+        self.make_solver_plots()
+
+
+    def get_acc(self, dataloader):
+        correct = 0
+        total = 0
+        total_error = 0
+        # since we're not training, we don't need to calculate the gradients for our outputs
+        with torch.no_grad():
+            for data in dataloader:
+                images, metadata, labels, uuid = data
+                images, metadata, labels = images.to(self.device), metadata.to(self.device), labels.to(self.device)
+
+                # calculate outputs by running images through the network
+                outputs = self.model(images, metadata)
+                # got to be within 1 year of real :
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += torch.sum(torch.abs(outputs - labels) < 1).cpu()
+                total_error += torch.sum(torch.abs(outputs - labels)).cpu()
+
+                # real dumb way of setting max...
+                if total >= self.num_val_samples:
+                    break
+        # return total_error / total
+        acc = 100 * correct // total
+        offset = total_error / total
+        return acc, offset
+
+
+
+
+def run_aging_solver(device, config_dict=None, load_checkpoint=None):
+    log_path = get_run_log_dir()
+
+    # write config parameters to log
+    config_file_path = os.path.join(log_path, "config.csv")
+    with open(config_file_path,'w') as config_file:
+        config_file_writer = csv.writer(config_file)
+        for key, value in config_dict.items():
+            print(f"{key}: {value}")
+            config_file_writer.writerow([key, value])
+
+    class_model = get_aging_model(device)
+
+    criterion = nn.MSELoss()
+
+    # use checkpoint from previous run?
+    if load_checkpoint is not None:
+        class_model.load_state_dict(torch.load(load_checkpoint, weights_only=True))
+        class_model.eval()
+        class_model.to(device)
+
+    # should all params in the model be trainable?  or should the CNN be fixed and just the ones in the fully connected layers?:
+    optimizer_ft = optim.Adam(class_model.parameters(),
+                              lr=config_dict["LEARNING_RATE"],
+                              weight_decay=config_dict["WEIGHT_DECAY"])
+
+
+    solver = AgingSolver(class_model,
+                    criterion=criterion,
+                    optimizer=optimizer_ft,
+                    config_dict=config_dict,
+                    device=device,
+                    log_dir=log_path,
+                    )
+    solver.train()
+    solver.get_max_min_loss(solver.test_dataloader, solver.num_val_samples , highlights_size=5)
+
+    print(log_path)
+    return solver

@@ -71,7 +71,7 @@ class Solver(object):
         """
         # Set up some variables for book-keeping
         self.epoch = 0
-        self.best_val_acc = 0
+        self.best_val_acc = 99999
         self.best_params = {}
         self.loss_history = []
         self.train_acc_history = []
@@ -194,7 +194,7 @@ class Solver(object):
                     # prediction = output[:, 0][image_index]
                     prediction = output[image_index]
                     loss = self.loss_function(prediction, labels[image_index])
-                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, uuids[image_index]))
+                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, labels[image_index], uuids[image_index]))
 
         # Sort by loss
         loss_image_pairs.sort(key=lambda x: x[0])
@@ -207,11 +207,11 @@ class Solver(object):
         os.makedirs(low_dir, exist_ok=True)
 
         # Save images
-        for idx, (loss, img, prediction, uuid) in enumerate(highest_losses):
-            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(highest_losses):
+            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{torch.max(label, 0)}__{loss:.4f}.png'))
             # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
-        for idx, (loss, img, prediction, uuid) in enumerate(lowest_losses):
-            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(lowest_losses):
+            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{torch.max(label, 0)}__{loss:.4f}.png'))
             # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
 
         return
@@ -305,7 +305,7 @@ def rand_jitter(arr):
 
 def get_run_log_dir():
     try:
-        max_count = max([int(file_name[:3])for file_name in os.listdir(LOG_DIR)])
+        max_count = max([int(file_name[:3])for file_name in os.listdir(LOG_DIR) if not "hyper" in file_name])
         run_count = str(max_count + 1).zfill(3)
     except ValueError:
         run_count = '001'
@@ -409,31 +409,137 @@ def make_solver_plots(solver, device=None, log_path=None):
     else:
         plt.show()
 
-def make_bot_plot(bot, num_samples, config_dict, device):
-    dataloaders, _ = get_dataloaders(1, None, config_dict=config_dict)
-    val_dataloader = dataloaders["val"]
+def make_bot_plot(bot, num_samples, dataloader, device, title):
     y_pred = []
     y_true_noised = []
     y_true = []
     bot.eval()
     with torch.no_grad():
         for i in range(num_samples):
-            images, data, labels = next(iter(val_dataloader))
+            images, data, labels, uuids = next(iter(dataloader))
             images = images.to(device)
             data = data.to(device)
             labels = labels.to(device)
             scores = bot(images, data)
             scores = scores.detach().cpu()
-            y_pred.append(scores[0])
+            y_pred.append(scores.T[0])
             y_true.append(labels)
             y_true_noised.append(labels + random.random() / 5)
             torch.cuda.empty_cache()
 
-    y_pred = torch.cat(y_pred)
-    y_true = torch.cat(y_true)
+    y_pred = torch.cat(y_pred).cpu()
+    y_true = torch.cat(y_true).cpu()
+    y_true = y_true[:, 0]
     y_true_noised = torch.cat(y_true_noised)
+
+    bins = np.linspace(0,12, 13)
+    plt.hist(y_true, bins, alpha=0.5, label='True, vrai')
+    plt.hist(y_pred.to(torch.int), bins, alpha=0.5, label='Predicted, prévu')
+    plt.xlabel("Age - âge")
+    plt.legend(loc='upper right')
+    plt.savefig(f"/home/stoyelq/shares/AquaRes_stoyelq/age_histo.png")
+    plt.show()
+    plt.clf()
+
+
+
     plt.scatter(y_true_noised.tolist(), y_pred.tolist())
-    plt.plot([0, 25], [0, 25])
+    plt.title(title)
+    plt.xlabel("Real - vrai")
+    plt.ylabel("Predicted - âge prévu")
+    plt.plot([0, 12], [0, 12])
+    plt.savefig(f"/home/stoyelq/shares/AquaRes_stoyelq/age_plot.png")
+    plt.show()
+
+    return y_pred, y_true
+
+def make_goodness_diff_bot_plot(bot, goodness_bot, num_batches, dataloader, device, title):
+    y_pred = []
+    y_true_noised = []
+    diff = []
+    goodness = []
+    y_true = []
+    bot.eval()
+    bot.to(device)
+    goodness_bot.eval()
+    goodness_bot.to(device)
+    with torch.no_grad():
+        for i in range(num_batches):
+            images, data, labels, uuids = next(iter(dataloader))
+            images = images.to(device)
+            data = data.to(device)
+            labels = labels.to(device)
+            scores = bot(images, data)
+            output = goodness_bot(images)
+
+            scores = scores.detach().cpu()
+            labels = labels.detach().cpu()
+            diff.append((scores - labels).T[0])
+
+            LABELS = [0, 1, 2, 3, 4, 5, 6, 7]
+            batch_goodness = torch.max(output, 1).indices.cpu()
+
+            # batch_goodness = batch_goodness.detach().cpu()
+            goodness.append(batch_goodness)
+
+            torch.cuda.empty_cache()
+
+    diff = torch.cat(diff)
+    goodness = torch.cat(goodness)
+    plt.scatter(goodness.tolist(), diff.tolist())
+    plt.xlabel("Goodness")
+    plt.ylabel("Predicted - Real")
+    plt.plot([0, 0], [-3, 3])
+    plt.plot( [-3, 3], [0, 0])
+    plt.title(title)
+    plt.show()
+
+    return y_pred, y_true
+
+
+def make_edge_type_diff_bot_plot(bot, edge_bot, num_batches, dataloader, device, title):
+    y_pred = []
+    y_true_noised = []
+    diff = []
+    edges = []
+    corectness = []
+    y_true = []
+    bot.eval()
+    bot.to(device)
+    edge_bot.eval()
+    edge_bot.to(device)
+    with torch.no_grad():
+        for i in range(num_batches):
+            images, data, labels, uuids = next(iter(dataloader))
+            images = images.to(device)
+            data = data.to(device)
+            labels = labels.to(device)
+            scores = bot(images, data)
+            output = edge_bot(images)
+
+            scores = scores.detach().cpu()
+            labels = labels.detach().cpu()
+            diff.append((scores - labels).T[0])
+
+            LABELS = [0, 1, 2, 3, 4, 5, 6, 7]
+            batch_edges = torch.max(output, 1).indices.cpu()
+            batch_correctness = batch_edges == data.cpu()
+            edges.append(data.cpu())
+            corectness.append(batch_correctness)
+
+            torch.cuda.empty_cache()
+
+    diff = torch.cat(diff)
+    edge_data = torch.cat(edges)
+    all_corectness = torch.cat(corectness)
+
+    colors = ["b" if correct else "r" for correct in all_corectness]
+    plt.scatter(edge_data.tolist(), diff.tolist(), c=colors)
+    plt.xlabel("Edge type")
+    plt.ylabel("Predicted - Real")
+    plt.plot([0, 0], [-3, 3])
+    plt.plot( [-3, 3], [0, 0])
+    plt.title(title)
     plt.show()
 
     return y_pred, y_true

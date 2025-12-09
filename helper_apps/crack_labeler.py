@@ -89,7 +89,7 @@ class ImageReviewApp:
         dst = os.path.join(OUT_DIR, filename)
         shutil.copy(src, dst)
 
-        self.history.append((filename, response))
+        self.history.append((filename, uuid, response))
         self.current_index += 1
         self.load_next_image()
 
@@ -98,24 +98,21 @@ class ImageReviewApp:
             messagebox.showinfo("Undo", "Nothing to undo.")
             return
 
-        filename, response = self.history.pop()
+        filename, uuid, response = self.history.pop()
         self.current_index -= 1
 
-        # Move image back
-        src = os.path.join(OUT_DIR, filename)
-        dst = os.path.join(IN_DIR, filename)
-        shutil.move(src, dst)
+        # Remove image from out dir
+        dst = os.path.join(OUT_DIR, filename)
+        os.remove(dst)
 
         # Remove last CSV entry
         with open(CSV_FILE, 'r') as f:
             rows = list(csv.reader(f))
-            rows = [row for row in rows if row and (row[0] != filename or row[1] != response)]
+            rows = [row for row in rows if row and (row[0] != uuid or row[1] != response)]
         with open(CSV_FILE, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerows(rows)
 
-        self.image_files.insert(self.current_index, filename)
-        self.total_images += 1
         self.load_next_image()
 
 

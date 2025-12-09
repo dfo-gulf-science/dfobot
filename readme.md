@@ -50,4 +50,13 @@ Note that there was a fairly low hit count for all of the classes other than goo
 15 epochs was sufficient to obtain a 100% accuracy at crack detection which held up running on the full 20,000 image dataset
 
  
-  
+## Tuning:
+ - Note that resnets only work on one image size once trained. i.e. if 400x400 images are used to train the model, tbe outputs will only be valid on other 400x400 images
+ - The imageK weights are an important starting point, the model trains far worse without transfer learning, even on the incorrect image sizes
+ - Resnet50 vs resnet 152 should no noticeable difference, using resnet 50 everywhere moving forward
+
+## Takeaways:
+ - There was no obvious correlation between image goodness and error on annuli count
+ - sliding window dot detection approach (is_dot) does not work due to translational invariance of CNN's
+ - No obvious connection between edge type and annuli count error
+ - Calculating edge width and type seperately perfomred better? 

@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from fontTools.misc.classifyTools import Classifier
 from torch import nn, optim
@@ -13,12 +14,10 @@ from torchvision.transforms import v2
 import torch
 
 
-# METADATA_CSV_PATH = "/home/stoyelq/Documents/dfobot_data/metadata/metadata.csv"
-# METADATA_COLUMNS = ['month', 'is_male', 'is_female', 'is_unknown', 'is_plaice', 'is_herring']
-
-# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/crack_finder/labels.csv"
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/oto_classifier/labels.csv"
 METADATA_COLUMNS = ['result', 'result_second' ]
+
+
 
 class ImageFolderCustom(Dataset):
     def __init__(self, targ_dir, transform=None):
@@ -31,10 +30,10 @@ class ImageFolderCustom(Dataset):
         # make sure this function returns the label from the path
         uuid = path.name.split(".")[0]
         metadata_row = self.metadata_df[(self.metadata_df["uuid"] == uuid)].iloc[0]
-        out_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
+        out_metadata_tensor = torch.tensor(metadata_row[METADATA_COLUMNS].values[0])
         result = torch.tensor(int(metadata_row["result"]))
         uuid = metadata_row["uuid"]
-        return out_tensor, result, uuid
+        return out_metadata_tensor, result, uuid
 
     def load_image(self, index):
         image_path = self.paths[index]
@@ -51,6 +50,7 @@ class ImageFolderCustom(Dataset):
             return self.transform(img), metadata, result, uuid
         else:
             return img, metadata, result, uuid
+
 
 
 def get_dataloaders(batch_size, max_size=None, config_dict=None):
@@ -80,7 +80,6 @@ def get_dataloaders(batch_size, max_size=None, config_dict=None):
     }
 
     data_dir = IMAGE_FOLDER_DIR
-
     image_datasets = {x: ImageFolderCustom(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
 
     if max_size is not None:
@@ -133,35 +132,43 @@ class ClassifierModel(nn.Module):
 class AugmentedModel(nn.Module):
     cnn_out_size = 25
     hidden_layer_size = 25
-    meta_data_length = len(METADATA_COLUMNS)
 
-    def __init__(self, all_layers):
+    def __init__(self, num_outputs, metadata_length):
         super(AugmentedModel, self).__init__()
+        meta_data_length = metadata_length
         self.cnn = models.resnet50(weights='IMAGENET1K_V2')
-        # freeze inner layers, if called for:
-        for param in self.cnn.parameters():
-            param.requires_grad = all_layers
 
         self.cnn.fc = nn.Linear(
             self.cnn.fc.in_features, self.cnn_out_size)
 
-        self.fc1 = nn.Linear(self.cnn_out_size + self.meta_data_length, self.hidden_layer_size)
-        self.fc2 = nn.Linear(self.hidden_layer_size, 1) # 1 = age
+        self.fc1 = nn.Linear(self.cnn_out_size + meta_data_length, self.hidden_layer_size)
+        self.fc2 = nn.Linear(self.hidden_layer_size, num_outputs) # 1 = age
+
+        torch.nn.init.normal_(self.cnn.fc.weight, mean=0, std=0.01)
+        torch.nn.init.normal_(self.fc1.weight, mean=0, std=0.01)
+        torch.nn.init.normal_(self.fc2.weight, mean=0, std=0.01)
+
 
     def forward(self, image, metadata):
         cnn_out = self.cnn(image)
-        cnn_out_augmented = torch.cat((cnn_out, metadata.type(cnn_out.dtype)), dim=1)
+        cnn_out_augmented = torch.cat((cnn_out, metadata.type(cnn_out.dtype).expand(1, -1).T), dim=1)
         fc1_out = relu(self.fc1(cnn_out_augmented))
-        age = self.fc2(fc1_out)
-        return age
+        output = self.fc2(fc1_out)
+        return output
 
 def get_base_model(device, all_layers):
     model_conv = BaseModel(all_layers)
     model_conv.to(device)
     return model_conv
 
-def get_classifier_model(device):
-    model_conv = ClassifierModel(4)
+def get_classifier_model(device, num_classes):
+    model_conv = ClassifierModel(num_classes)
+    model_conv.to(device)
+    return model_conv
+
+
+def get_center_model(device):
+    model_conv = ClassifierModel(2)
     model_conv.to(device)
     return model_conv
 
@@ -169,3 +176,9 @@ def get_augmented_model(device, all_layers):
     model_conv = AugmentedModel(all_layers)
     model_conv.to(device)
     return model_conv
+
+def load_model_from_log_file(log_file_path):
+    pickle_path = os.path.join(log_file_path, 'model.pkl')
+    with open(pickle_path, 'rb') as model_file:
+        model = pickle.load(model_file)
+    return model

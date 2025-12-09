@@ -1,0 +1,164 @@
+(Time 24.09 sec;) [1/20,    25/179] loss: 10.072
+(Time 39.69 sec;) [1/20,    50/179] loss: 1.243
+(Time 57.33 sec;) [1/20,    75/179] loss: 1.506
+(Time 75.11 sec;) [1/20,   100/179] loss: 1.060
+(Time 95.54 sec;) [1/20,   125/179] loss: 1.113
+(Time 111.65 sec;) [1/20,   150/179] loss: 1.400
+(Time 126.40 sec;) [1/20,   175/179] loss: 1.139
+Epoch 1 stats: Training accuracy: 62.     Test accuracy: 69.
+(Time 160.87 sec;) [2/20,    25/179] loss: 1.037
+(Time 179.89 sec;) [2/20,    50/179] loss: 1.073
+(Time 201.50 sec;) [2/20,    75/179] loss: 1.002
+(Time 226.88 sec;) [2/20,   100/179] loss: 0.987
+(Time 243.14 sec;) [2/20,   125/179] loss: 1.029
+(Time 264.17 sec;) [2/20,   150/179] loss: 0.890
+(Time 281.66 sec;) [2/20,   175/179] loss: 0.932
+Epoch 2 stats: Training accuracy: 65.     Test accuracy: 63.
+(Time 306.38 sec;) [3/20,    25/179] loss: 0.932
+(Time 326.52 sec;) [3/20,    50/179] loss: 0.882
+(Time 348.22 sec;) [3/20,    75/179] loss: 0.775
+(Time 364.34 sec;) [3/20,   100/179] loss: 1.080
+(Time 384.30 sec;) [3/20,   125/179] loss: 0.939
+(Time 404.29 sec;) [3/20,   150/179] loss: 0.864
+(Time 427.06 sec;) [3/20,   175/179] loss: 0.912
+Epoch 3 stats: Training accuracy: 72.     Test accuracy: 71.
+(Time 460.86 sec;) [4/20,    25/179] loss: 0.869
+(Time 478.96 sec;) [4/20,    50/179] loss: 0.767
+(Time 502.71 sec;) [4/20,    75/179] loss: 0.791
+(Time 519.61 sec;) [4/20,   100/179] loss: 0.890
+(Time 543.21 sec;) [4/20,   125/179] loss: 0.954
+(Time 564.05 sec;) [4/20,   150/179] loss: 0.778
+(Time 582.13 sec;) [4/20,   175/179] loss: 0.827
+Epoch 4 stats: Training accuracy: 72.     Test accuracy: 70.
+(Time 617.00 sec;) [5/20,    25/179] loss: 0.836
+(Time 641.05 sec;) [5/20,    50/179] loss: 0.683
+(Time 664.81 sec;) [5/20,    75/179] loss: 0.943
+(Time 692.25 sec;) [5/20,   100/179] loss: 0.815
+(Time 714.58 sec;) [5/20,   125/179] loss: 0.827
+(Time 733.02 sec;) [5/20,   150/179] loss: 0.854
+(Time 748.11 sec;) [5/20,   175/179] loss: 0.916
+Epoch 5 stats: Training accuracy: 77.     Test accuracy: 76.
+(Time 778.28 sec;) [6/20,    25/179] loss: 0.708
+(Time 800.95 sec;) [6/20,    50/179] loss: 0.714
+(Time 824.09 sec;) [6/20,    75/179] loss: 0.703
+(Time 844.23 sec;) [6/20,   100/179] loss: 0.692
+(Time 864.64 sec;) [6/20,   125/179] loss: 0.699
+(Time 883.12 sec;) [6/20,   150/179] loss: 0.831
+(Time 903.22 sec;) [6/20,   175/179] loss: 0.880
+Epoch 6 stats: Training accuracy: 77.     Test accuracy: 77.
+(Time 937.44 sec;) [7/20,    25/179] loss: 0.823
+(Time 952.91 sec;) [7/20,    50/179] loss: 0.718
+(Time 973.63 sec;) [7/20,    75/179] loss: 0.860
+(Time 992.51 sec;) [7/20,   100/179] loss: 0.707
+(Time 1014.24 sec;) [7/20,   125/179] loss: 0.648
+(Time 1032.64 sec;) [7/20,   150/179] loss: 0.687
+(Time 1051.77 sec;) [7/20,   175/179] loss: 0.720
+Epoch 7 stats: Training accuracy: 74.     Test accuracy: 76.
+(Time 1076.88 sec;) [8/20,    25/179] loss: 0.695
+(Time 1092.69 sec;) [8/20,    50/179] loss: 0.652
+(Time 1113.07 sec;) [8/20,    75/179] loss: 0.731
+(Time 1128.91 sec;) [8/20,   100/179] loss: 0.607
+(Time 1149.01 sec;) [8/20,   125/179] loss: 0.730
+(Time 1169.66 sec;) [8/20,   150/179] loss: 0.641
+(Time 1192.34 sec;) [8/20,   175/179] loss: 0.709
+Epoch 8 stats: Training accuracy: 80.     Test accuracy: 78.
+(Time 1225.25 sec;) [9/20,    25/179] loss: 0.545
+(Time 1240.51 sec;) [9/20,    50/179] loss: 0.717
+(Time 1255.17 sec;) [9/20,    75/179] loss: 0.674
+(Time 1275.74 sec;) [9/20,   100/179] loss: 0.770
+(Time 1293.37 sec;) [9/20,   125/179] loss: 0.692
+(Time 1315.32 sec;) [9/20,   150/179] loss: 0.546
+(Time 1331.63 sec;) [9/20,   175/179] loss: 0.592
+Epoch 9 stats: Training accuracy: 80.     Test accuracy: 82.
+(Time 1364.98 sec;) [10/20,    25/179] loss: 0.625
+(Time 1382.53 sec;) [10/20,    50/179] loss: 0.737
+(Time 1399.02 sec;) [10/20,    75/179] loss: 0.649
+(Time 1415.86 sec;) [10/20,   100/179] loss: 0.523
+(Time 1438.41 sec;) [10/20,   125/179] loss: 0.618
+(Time 1459.96 sec;) [10/20,   150/179] loss: 0.616
+(Time 1481.92 sec;) [10/20,   175/179] loss: 0.674
+Epoch 10 stats: Training accuracy: 77.     Test accuracy: 77.
+(Time 1521.57 sec;) [11/20,    25/179] loss: 0.615
+(Time 1536.41 sec;) [11/20,    50/179] loss: 0.660
+(Time 1551.79 sec;) [11/20,    75/179] loss: 0.520
+(Time 1566.31 sec;) [11/20,   100/179] loss: 0.705
+(Time 1581.92 sec;) [11/20,   125/179] loss: 0.665
+(Time 1596.72 sec;) [11/20,   150/179] loss: 0.546
+(Time 1611.90 sec;) [11/20,   175/179] loss: 0.641
+Epoch 11 stats: Training accuracy: 81.     Test accuracy: 80.
+(Time 1638.70 sec;) [12/20,    25/179] loss: 0.607
+(Time 1654.38 sec;) [12/20,    50/179] loss: 0.515
+(Time 1668.11 sec;) [12/20,    75/179] loss: 0.608
+(Time 1682.32 sec;) [12/20,   100/179] loss: 0.520
+(Time 1698.92 sec;) [12/20,   125/179] loss: 0.593
+(Time 1716.59 sec;) [12/20,   150/179] loss: 0.562
+(Time 1736.31 sec;) [12/20,   175/179] loss: 0.541
+Epoch 12 stats: Training accuracy: 82.     Test accuracy: 80.
+(Time 1769.15 sec;) [13/20,    25/179] loss: 0.553
+(Time 1785.79 sec;) [13/20,    50/179] loss: 0.592
+(Time 1809.73 sec;) [13/20,    75/179] loss: 0.663
+(Time 1831.09 sec;) [13/20,   100/179] loss: 0.553
+(Time 1851.03 sec;) [13/20,   125/179] loss: 0.521
+(Time 1871.97 sec;) [13/20,   150/179] loss: 0.599
+(Time 1897.72 sec;) [13/20,   175/179] loss: 0.544
+Epoch 13 stats: Training accuracy: 84.     Test accuracy: 85.
+(Time 1942.27 sec;) [14/20,    25/179] loss: 0.480
+(Time 1957.81 sec;) [14/20,    50/179] loss: 0.510
+(Time 1977.54 sec;) [14/20,    75/179] loss: 0.508
+(Time 2001.65 sec;) [14/20,   100/179] loss: 0.530
+(Time 2019.60 sec;) [14/20,   125/179] loss: 0.682
+(Time 2037.63 sec;) [14/20,   150/179] loss: 0.562
+(Time 2055.01 sec;) [14/20,   175/179] loss: 0.507
+Epoch 14 stats: Training accuracy: 77.     Test accuracy: 80.
+(Time 2087.20 sec;) [15/20,    25/179] loss: 0.495
+(Time 2106.53 sec;) [15/20,    50/179] loss: 0.497
+(Time 2121.76 sec;) [15/20,    75/179] loss: 0.516
+(Time 2138.74 sec;) [15/20,   100/179] loss: 0.517
+(Time 2153.34 sec;) [15/20,   125/179] loss: 0.526
+(Time 2168.64 sec;) [15/20,   150/179] loss: 0.474
+(Time 2183.79 sec;) [15/20,   175/179] loss: 0.628
+Epoch 15 stats: Training accuracy: 78.     Test accuracy: 77.
+(Time 2209.06 sec;) [16/20,    25/179] loss: 0.457
+(Time 2223.55 sec;) [16/20,    50/179] loss: 0.472
+(Time 2239.41 sec;) [16/20,    75/179] loss: 0.489
+(Time 2254.24 sec;) [16/20,   100/179] loss: 0.562
+(Time 2268.07 sec;) [16/20,   125/179] loss: 0.553
+(Time 2282.29 sec;) [16/20,   150/179] loss: 0.605
+(Time 2297.29 sec;) [16/20,   175/179] loss: 0.543
+Epoch 16 stats: Training accuracy: 80.     Test accuracy: 82.
+(Time 2321.87 sec;) [17/20,    25/179] loss: 0.514
+(Time 2339.20 sec;) [17/20,    50/179] loss: 0.512
+(Time 2356.95 sec;) [17/20,    75/179] loss: 0.549
+(Time 2374.05 sec;) [17/20,   100/179] loss: 0.553
+(Time 2389.86 sec;) [17/20,   125/179] loss: 0.468
+(Time 2408.23 sec;) [17/20,   150/179] loss: 0.532
+(Time 2424.50 sec;) [17/20,   175/179] loss: 0.456
+Epoch 17 stats: Training accuracy: 76.     Test accuracy: 76.
+(Time 2448.07 sec;) [18/20,    25/179] loss: 0.520
+(Time 2464.45 sec;) [18/20,    50/179] loss: 0.454
+(Time 2478.74 sec;) [18/20,    75/179] loss: 0.391
+(Time 2493.18 sec;) [18/20,   100/179] loss: 0.471
+(Time 2509.41 sec;) [18/20,   125/179] loss: 0.394
+(Time 2523.82 sec;) [18/20,   150/179] loss: 0.454
+(Time 2537.88 sec;) [18/20,   175/179] loss: 0.472
+Epoch 18 stats: Training accuracy: 81.     Test accuracy: 80.
+(Time 2563.27 sec;) [19/20,    25/179] loss: 0.447
+(Time 2578.05 sec;) [19/20,    50/179] loss: 0.382
+(Time 2592.68 sec;) [19/20,    75/179] loss: 0.473
+(Time 2607.48 sec;) [19/20,   100/179] loss: 0.480
+(Time 2622.43 sec;) [19/20,   125/179] loss: 0.531
+(Time 2637.82 sec;) [19/20,   150/179] loss: 0.421
+(Time 2651.26 sec;) [19/20,   175/179] loss: 0.507
+Epoch 19 stats: Training accuracy: 81.     Test accuracy: 84.
+(Time 2674.62 sec;) [20/20,    25/179] loss: 0.387
+(Time 2689.81 sec;) [20/20,    50/179] loss: 0.464
+(Time 2703.21 sec;) [20/20,    75/179] loss: 0.439
+(Time 2718.36 sec;) [20/20,   100/179] loss: 0.451
+(Time 2732.86 sec;) [20/20,   125/179] loss: 0.495
+(Time 2747.59 sec;) [20/20,   150/179] loss: 0.470
+(Time 2762.46 sec;) [20/20,   175/179] loss: 0.379
+Epoch 20 stats: Training accuracy: 83.     Test accuracy: 82.
+Finished Training
+
+
+Resnet 50 model, non augmented

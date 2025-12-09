@@ -1,4 +1,5 @@
 import csv
+import pickle
 import time
 
 import matplotlib.pyplot as plt
@@ -6,6 +7,9 @@ import numpy as np
 import torch
 from torch import nn, optim
 import os
+
+from torchvision.utils import save_image
+
 from model.model_utils import get_dataloaders, ClassifierModel, get_classifier_model
 import torchvision
 
@@ -16,6 +20,7 @@ class ClassifierSolver(object):
     def __init__(self, model, criterion, optimizer, config_dict, **kwargs):
         self.device = kwargs.pop("device", "cuda")
         self.log_dir = kwargs.pop("log_dir", None)
+        self.classes = kwargs.pop("classes", None)
 
         self.model = model.to(self.device)
         self.optimizer = optimizer
@@ -24,16 +29,16 @@ class ClassifierSolver(object):
         self.max_data = self.config_dict["MAX_DATA"]
         self.batch_size = self.config_dict["BATCH_SIZE"]
 
-        dataloaders, dataset_sizes = get_dataloaders(self.batch_size, self.max_data, config_dict=config_dict)
+        my_dataloaders = self.config_dict["get_dataloaders"]
+
+        dataloaders, dataset_sizes = my_dataloaders(self.batch_size, self.max_data, config_dict=config_dict)
         self.test_dataloader = dataloaders["val"]
         self.train_dataloader = dataloaders["train"]
         self.dataset_sizes = dataset_sizes
         self.num_epochs = self.config_dict["NUM_EPOCHS"]
+        self.log_epochs = self.config_dict.get("LOG_EPOCHS")
         self.num_val_samples = self.config_dict["ACC_SAMPLES"] if self.config_dict["ACC_SAMPLES"] else 100
         self.print_every = self.config_dict["PRINT_EVERY"]
-
-
-        self.classes = ["good", "crack", "crystal", "twin"]
 
         # Throw an error if there are extra keyword arguments
         if len(kwargs) > 0:
@@ -62,6 +67,7 @@ class ClassifierSolver(object):
         self.loss_history = []
         self.train_acc_history = []
         self.test_acc_history = []
+        self.test_offset_history = []
 
 
     def train(self):
@@ -110,30 +116,44 @@ class ClassifierSolver(object):
             self.make_solver_plots()
 
         self.print_and_log('Finished Training')
-        self.save_state()
+        self.save_state(best=True)
+        self.save_model()
         self.make_solver_plots()
         self.print_class_scores()
 
-    def save_state(self, epoch=None):
+    def save_state(self, epoch=None, best=False):
         weights_path = os.path.join(self.log_dir, 'trained_weights.pth')
+        best_path = os.path.join(self.log_dir, 'best_weights.pth')
         if epoch:
-            weights_path = os.path.join(self.log_dir, 'epochs', f'epoch_{epoch + 1}_weights.pth')
+            if self.log_epochs:
+                weights_path = os.path.join(self.log_dir, 'epochs', f'epoch_{epoch + 1}_weights.pth')
+            else:
+                # don't save epochs unless
+                return
 
         # Save weights
         torch.save(self.model.state_dict(), weights_path)
+        if best:
+            torch.save(self.best_params, best_path)
+
+    def save_model(self):
+        model_path = os.path.join(self.log_dir, 'model.pkl')
+        with open(model_path, 'wb') as model_file:
+            pickle.dump(self.model, model_file)
+
 
     def get_acc(self, dataloader):
         correct = 0
         total = 0
         # since we're not training, we don't need to calculate the gradients for our outputs
         with torch.no_grad():
-            for data in self.test_dataloader:
+            for data in dataloader:
                 images, metadata, labels, uuid = data
                 images, labels = images.to(self.device), labels.to(self.device)
 
                 # calculate outputs by running images through the network
                 outputs = self.model(images)
-                # the class with the highest energy is what we choose as prediction
+                # the class with the highest score is what we choose as prediction
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -163,7 +183,6 @@ class ClassifierSolver(object):
 
 
     def print_class_scores(self):
-
         # prepare to count predictions for each class
         correct_pred = {classname: 0 for classname in self.classes}
         total_pred = {classname: 0 for classname in self.classes}
@@ -186,10 +205,67 @@ class ClassifierSolver(object):
         for classname, correct_count in correct_pred.items():
             if total_pred[classname] > 0:
                 accuracy = 100 * float(correct_count) / total_pred[classname]
-                self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f} %')
+                self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f}%  ({int(correct_count)}/{total_pred[classname]})')
+
+    def get_max_min_loss(self, dataloader, num_samples, highlights_size=5):
+        """
+        Find the input images that are fit best and worst, as well as the extreme values
+
+        Inputs:
+        - dataloader: Dataloader
+        - num_samples: How many samples to check
+        Returns:
+        - Nothing, but saves the top images into a file in the log directory.
+        """
+
+        # Compute predictions in batches
+        self.model.eval()
+        num_batches = num_samples // self.batch_size
+        if num_samples % self.batch_size != 0:
+            num_batches += 1
+
+        loss_image_pairs = []
+
+        # first calculate all the losses and store in a list of tuples
+        with torch.no_grad():
+            for i in range(num_batches):
+                images, data, labels, uuids = next(iter(dataloader))
+                images, data, labels = images.to(self.device), data.to(self.device), labels.to(self.device)
+                output = self.model(images, data)
+                print(output)
+                for image_index in range(images.size(0)):
+                    #  handles duplicate uuid case, don't need it for classifier
+                    # prediction = output[:, 0][image_index]
+                    prediction = output[image_index]
+                    loss = self.criterion(prediction, labels[image_index])
+                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, labels[image_index], uuids[image_index]))
+
+        # Sort by loss
+        loss_image_pairs.sort(key=lambda x: x[0])
+        lowest_losses = loss_image_pairs[:highlights_size]
+        highest_losses = loss_image_pairs[-highlights_size:]
+
+        high_dir = os.path.join(self.log_dir, 'highest_losses')
+        low_dir = os.path.join(self.log_dir, 'lowest_losses')
+        os.makedirs(high_dir, exist_ok=True)
+        os.makedirs(low_dir, exist_ok=True)
+
+        # Save images
+        for idx, (loss, img, prediction, label, uuid) in enumerate(highest_losses):
+            save_image(img, os.path.join(high_dir, f'{uuid}__{float(prediction):.2f}__{float(label):.1f}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(lowest_losses):
+            save_image(img, os.path.join(low_dir, f'{uuid}__{float(prediction):.2f}__{float(label):.1f}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+
+        return
 
 
-def run_class_solver(device, config_dict=None, load_checkpoint=None):
+def run_class_solver(device, config_dict=None, load_checkpoint=None, classes=None):
+
+    if classes is None:
+        classes = ["good", "crack", "crystal", "twin"]
+
     log_path = get_run_log_dir()
 
     # write config parameters to log
@@ -200,7 +276,7 @@ def run_class_solver(device, config_dict=None, load_checkpoint=None):
             print(f"{key}: {value}")
             config_file_writer.writerow([key, value])
 
-    class_model = get_classifier_model(device)
+    class_model = get_classifier_model(device, num_classes=len(classes))
     criterion = nn.CrossEntropyLoss()
 
     # use checkpoint from previous run?
@@ -216,12 +292,13 @@ def run_class_solver(device, config_dict=None, load_checkpoint=None):
 
 
     solver = ClassifierSolver(class_model,
-                    criterion=criterion,
-                    optimizer=optimizer_ft,
-                    config_dict=config_dict,
-                    device=device,
-                    log_dir=log_path,
-                    )
+                              criterion=criterion,
+                              optimizer=optimizer_ft,
+                              config_dict=config_dict,
+                              device=device,
+                              log_dir=log_path,
+                              classes=classes,
+                              )
     solver.train()
     print(log_path)
     return solver
