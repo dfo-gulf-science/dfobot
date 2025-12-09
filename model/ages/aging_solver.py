@@ -139,5 +139,7 @@ def run_aging_solver(device, config_dict=None, load_checkpoint=None):
                     log_dir=log_path,
                     )
     solver.train()
+    solver.get_max_min_loss(solver.test_dataloader, solver.num_val_samples , highlights_size=5)
+
     print(log_path)
     return solver

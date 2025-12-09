@@ -194,7 +194,7 @@ class Solver(object):
                     # prediction = output[:, 0][image_index]
                     prediction = output[image_index]
                     loss = self.loss_function(prediction, labels[image_index])
-                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, uuids[image_index]))
+                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, labels[image_index], uuids[image_index]))
 
         # Sort by loss
         loss_image_pairs.sort(key=lambda x: x[0])
@@ -207,11 +207,11 @@ class Solver(object):
         os.makedirs(low_dir, exist_ok=True)
 
         # Save images
-        for idx, (loss, img, prediction, uuid) in enumerate(highest_losses):
-            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(highest_losses):
+            save_image(img, os.path.join(high_dir, f'{uuid}__{torch.max(prediction, 0)}__{torch.max(label, 0)}__{loss:.4f}.png'))
             # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
-        for idx, (loss, img, prediction, uuid) in enumerate(lowest_losses):
-            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(lowest_losses):
+            save_image(img, os.path.join(low_dir, f'{uuid}__{torch.max(prediction, 0)}__{torch.max(label, 0)}__{loss:.4f}.png'))
             # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
 
         return
@@ -427,12 +427,28 @@ def make_bot_plot(bot, num_samples, dataloader, device, title):
             y_true_noised.append(labels + random.random() / 5)
             torch.cuda.empty_cache()
 
-    y_pred = torch.cat(y_pred)
-    y_true = torch.cat(y_true)
+    y_pred = torch.cat(y_pred).cpu()
+    y_true = torch.cat(y_true).cpu()
+    y_true = y_true[:, 0]
     y_true_noised = torch.cat(y_true_noised)
+
+    bins = np.linspace(0,12, 13)
+    plt.hist(y_true, bins, alpha=0.5, label='True, vrai')
+    plt.hist(y_pred.to(torch.int), bins, alpha=0.5, label='Predicted, prévu')
+    plt.xlabel("Age - âge")
+    plt.legend(loc='upper right')
+    plt.savefig(f"/home/stoyelq/shares/AquaRes_stoyelq/age_histo.png")
+    plt.show()
+    plt.clf()
+
+
+
     plt.scatter(y_true_noised.tolist(), y_pred.tolist())
     plt.title(title)
+    plt.xlabel("Real - vrai")
+    plt.ylabel("Predicted - âge prévu")
     plt.plot([0, 12], [0, 12])
+    plt.savefig(f"/home/stoyelq/shares/AquaRes_stoyelq/age_plot.png")
     plt.show()
 
     return y_pred, y_true

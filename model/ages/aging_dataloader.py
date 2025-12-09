@@ -10,6 +10,7 @@ from torchvision.transforms import v2
 import torch
 
 METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ages/ages.csv"
+# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ages_combined/combined_ages.csv"
 METADATA_COLUMNS = ['edge_type']
 
 
@@ -75,7 +76,7 @@ def get_aging_dataloaders(batch_size, max_size=None, config_dict=None):
 
 
 def get_aging_model(device):
-    # model_conv = ClassifierModel(1)
-    model_conv = AugmentedModel(num_outputs=1, metadata_length=1)
+    model_conv = ClassifierModel(1)
+    # model_conv = AugmentedModel(num_outputs=1, metadata_length=1)
     model_conv.to(device)
     return model_conv

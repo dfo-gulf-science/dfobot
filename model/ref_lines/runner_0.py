@@ -7,14 +7,14 @@ config_dict = {
     "NUM_WORKERS": 4,
     "CROP_SIZE": 500,
     "VAL_CROP_SIZE": 500,
-    "LEARNING_RATE": 1e-4,
+    "LEARNING_RATE": 1e-5,
     "BATCH_SIZE": 10,
     "PRINT_EVERY": 25,
     "MAX_DATA": None,
-    "NUM_EPOCHS": 50,
+    "NUM_EPOCHS": 10,
     "WEIGHT_DECAY": 1e-5,
-    "ACC_SAMPLES": 100,
-    "ACC_VAL_SAMPLES": 100,
+    "ACC_SAMPLES": 200,
+    "ACC_VAL_SAMPLES": 200,
 }
 
 run_ref_line_solver(device="cuda:0", config_dict=config_dict)

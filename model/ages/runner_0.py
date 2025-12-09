@@ -6,16 +6,16 @@ config_dict = {
     "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/ages/",
     "get_dataloaders": get_aging_dataloaders,
     "NUM_WORKERS": 4,
-    "CROP_SIZE": 300,
-    "VAL_CROP_SIZE": 300,
-    "LEARNING_RATE": 1e-2,
+    "CROP_SIZE": 500,
+    "VAL_CROP_SIZE": 500,
+    "LEARNING_RATE": 1e-4,
     "BATCH_SIZE": 20,
     "PRINT_EVERY": 100,
     "MAX_DATA": None,
     "NUM_EPOCHS": 10,
-    "WEIGHT_DECAY": 0,
-    "ACC_SAMPLES": 100,
-    "ACC_VAL_SAMPLES": 100,
+    "WEIGHT_DECAY": 1e-5,
+    "ACC_SAMPLES": 500,
+    "ACC_VAL_SAMPLES": 500,
 }
 
 run_aging_solver(device="cuda:1", config_dict=config_dict)

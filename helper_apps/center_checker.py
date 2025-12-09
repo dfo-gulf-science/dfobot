@@ -8,7 +8,8 @@ from model.model_utils import ClassifierModel
 
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/train"
 IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/051__2025-11-19/trained_weights.pth"
+CENTER_WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/069__2025-11-24/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/ref_edge/trained_weights.pth"
 DEVICE = "cuda:1"
 
 
@@ -16,12 +17,16 @@ class CenterChecker:
     def __init__(self, image_size=(500, 500)):
         model = ClassifierModel(num_outputs=2)
         model.load_state_dict(torch.load(WEIGHTS_PATH, weights_only=True))
-
         self.model = model.eval()
+
+        center_model = ClassifierModel(num_outputs=2)
+        center_model.load_state_dict(torch.load(CENTER_WEIGHTS_PATH, weights_only=True))
+        self.center_model = center_model.eval()
         self.image_dir = IMAGE_DIR
         self.image_size = image_size
         self.device = torch.device(DEVICE)
         self.model.to(self.device)
+        self.center_model.to(self.device)
 
         self.image_paths = [os.path.join(self.image_dir, f) for f in os.listdir(self.image_dir)
                             if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
@@ -59,11 +64,12 @@ class CenterChecker:
         input_tensor = self.transform(pil_img).unsqueeze(0).to(self.device)
         with torch.no_grad():
             output = self.model(input_tensor)
+            center_output = self.center_model(input_tensor)
             print(output)
-            x0 = min(int(output[0][0] * self.image_size[0]), self.image_size[0])
-            x1 = int(x0 - 10)
-            y0 = min(int(output[0][1] * self.image_size[1]), self.image_size[1])
-            y1 = int(y0 - 10)
+            x1 = min(int(output[0][0] * self.image_size[0]), self.image_size[0])
+            x0 = min(int(center_output[0][0] * self.image_size[0]), self.image_size[0])
+            y1 = min(int(output[0][1] * self.image_size[1]), self.image_size[1])
+            y0 = min(int(center_output[0][1] * self.image_size[1]), self.image_size[1])
             self.canvas.create_line(x0,y0, x1, y1, arrow=tk.FIRST, width=3, fill="red")
 
     def next_image(self, event=None):

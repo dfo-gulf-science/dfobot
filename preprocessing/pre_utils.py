@@ -17,8 +17,14 @@ import cv2
 ORIGINALS_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/originals/"
 RAW_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw/"
 RAW_METADATA = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw_metadata.csv"
+
+DFODOTS_METADATA = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/dfo_dots_ages.csv"
+ORACLE_METADATA = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/yellowtail_oracle_dump.csv"
+
 METADATA_DIR = "/home/stoyelq/Documents/dfobot_data/metadata/"
 CROP_DIR = "/home/stoyelq/Documents/dfobot_data/cropped_singles/"
+
+
 # CROP_DIR = "/home/stoyelq/Documents/dfobot_data/cropped_herring_singles/"
 TEST_DIR = "/home/stoyelq/Documents/dfobot_data/cropped_singles_test/"
 IMAGE_FOLDER_DIR = "/home/stoyelq/Documents/dfobot_data/image_folder/"
@@ -63,49 +69,10 @@ def crop_by_ccords(img, x1, y1, x2, y2, out_dir, outdim=(256, 256)):
     saved = cv2.imwrite(out_dir, cropped)
 
 
-
-def get_data_from_name(img_name, gt_df, herring):
-    if herring:
-        try:
-            sample_id = img_name.split("-")[1]
-            fish_number = img_name.split("-")[2].split(".")[0]
-        except Exception as e:
-            print(img_name)
-            raise Exception(e)
-        try:
-            fish_number = int(fish_number)
-        except ValueError:
-            fish_number = fish_number
-        fish_id = img_name.split(".")[0][5:]
-        fish_data_row = gt_df[(gt_df["sample_id"] == int(sample_id)) & (gt_df["fish_number"] == str(fish_number))]
-    else:
-        fish_id = img_name.split("photo")[0][:-1].split(" ")[0]
-        fish_data_row = gt_df[gt_df["specimen_identifier"] == fish_id]
-    try:
-        fish_age = int(fish_data_row["annulus_count"].iloc[0])
-        if fish_age == -99:
-            return None, None, None
-    except:
-        return None, None, None
-
-    length = float(fish_data_row["length_mm"].iloc[0]) / 1000
-    weight = float(fish_data_row["weight_g"].iloc[0]) / 1000
-    month = float(fish_data_row["collection_date"].iloc[0][6:7]) / 12
-    is_male = 1 if fish_data_row["sex"].iloc[0].lower() == "male" else 0
-    is_female = 1 if fish_data_row["sex"].iloc[0].lower() == "female" else 0
-    is_unknown = 1 if fish_data_row["sex"].iloc[0].lower() == "unknown" else 0
-    is_plaice = 0 if herring else 1
-    is_herring = 1 if herring else 0
-    fish_uuid = uuid.uuid4()
-    fish_data = fish_uuid, fish_id, fish_age, length, weight, month, is_male, is_female, is_unknown, is_plaice, is_herring
-    return fish_data, fish_age, fish_uuid
-
-
 def crop_and_isolate():
     # load images
     img_list = os.listdir(ORIGINALS_DIR)
     count = len(img_list)
-    # gt_df = load_dmapps_report(herring)
     row_index = 0
     uuid.uuid4()
     with open(RAW_METADATA,'w') as metadata_sheet:
@@ -235,15 +202,6 @@ def train_val_splitter(in_dir, out_dir, split=0.9):
 
 
 
-def load_dmapps_report(herring):
-    if herring:
-        gt_file = os.path.join("/home/stoyelq/Documents/dfobot_data/2019_herring_GT.csv")
-    else:
-        gt_file = os.path.join("/home/stoyelq/Documents/dfobot_data/2022_RV_GT.csv")
-    gt_df = pd.read_csv(gt_file)
-    return gt_df
-
-
 def row_ager_and_writer(row, ages_writer, oracle_df):
     year = int(row["filename"].split("-")[1])
     mission_number = int(row["filename"].split("-")[2])
@@ -314,7 +272,7 @@ def get_line_coord_list(uuid):
     return center_x, center_y, edge_x, edge_y
 
 
-def join_oracle_dump_to_metadata(herring):
+def join_oracle_dump_to_metadata():
     metadata = pd.read_csv(RAW_METADATA)
     oracle_dump = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot/yellowtail/yellowtail_oracle_dump.csv")
 
@@ -396,14 +354,94 @@ def create_ref_line_images():
             new_coords = crop_and_transform(img_path, line_coords, out_path)
             sheet_writer.writerow([img_uuid, new_coords[0], new_coords[1], new_coords[2], new_coords[3]])
     return
+
+
+def get_dfo_dots_ages(raw_df, dfo_dots_df, img_uuid):
+    img_uuid = img_uuid.split(".")[0]
+    img_name = raw_df.loc[raw_df["uuid"] == img_uuid].iloc[0]["filename"]
+
+    year = int(img_name.split("-")[1])
+    mission_number = int(img_name.split("-")[2])
+    fish_number = int(img_name.split("-")[3].split("(")[0].strip())
+
+    matching_rows = dfo_dots_df.loc[(dfo_dots_df["collection_year"] == year) & (dfo_dots_df["fish_number"] == fish_number)]
+    if len(matching_rows) == 1:
+        # uuid,filename,age,annuli,edge_type,length,weight
+        img_uuid = uuid.uuid4()
+        return [img_uuid, img_name, matching_rows["age_manual"].iloc[0], matching_rows["annulus_count"].iloc[0], matching_rows["edge_type"].iloc[0], matching_rows["length_mm"].iloc[0], matching_rows["weight_g"].iloc[0]]
+    elif len(matching_rows) == 0:
+        return False
+    else:
+        print(f"multiple matches for {img_name}")
+        return False
+
+def get_oracle_ages(raw_df, oracle_df,img_uuid):
+    img_uuid = img_uuid.split(".")[0]
+    img_name = raw_df.loc[raw_df["uuid"] == img_uuid].iloc[0]["filename"]
+
+    year = int(img_name.split("-")[1])
+    mission_number = int(img_name.split("-")[2])
+    fish_number = int(img_name.split("-")[3].split("(")[0].strip())
+
+    matching_rows = oracle_df.loc[(oracle_df["year"] == year) & (oracle_df["cruise_number"] == mission_number) & (oracle_df["fish_number"] == fish_number)]
+    if len(matching_rows) == 1:
+        # uuid,filename,age,annuli,edge_type,length,weight
+        img_uuid = uuid.uuid4()
+        return [img_uuid, img_name, matching_rows["age"].iloc[0], matching_rows["annuli"].iloc[0], matching_rows["edge_type"].iloc[0], matching_rows["length"].iloc[0], matching_rows["weight"].iloc[0]]
+    elif len(matching_rows) == 0:
+        return False
+    else:
+        print(f"multiple matches for {img_name}")
+        return False
+
+def make_combined_ages():
+    img_list = os.listdir(RAW_DIR)
+    img_name_df = pd.read_csv(RAW_METADATA)
+    dfo_dots_df = pd.read_csv(DFODOTS_METADATA)
+    oracle_df = pd.read_csv(ORACLE_METADATA)
+
+    in_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw/"
+    out_dir = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages_combined/"
+
+    dfo_dots_count = 0
+    oracle_count = 0
+    row_index = 0
+
+    with open("/home/stoyelq/my_hot_storage/dfobot/yellowtail/combined_ages.csv",'w') as ages_sheet:
+        ages_writer = csv.writer(ages_sheet)
+        ages_writer.writerow(["uuid", "filename", "age", "annuli", "edge_type", "length", "weight"])
+    
+        for img_name in img_list:
+            age_data = get_dfo_dots_ages(img_name_df, dfo_dots_df, img_name)
+            if age_data:
+                dfo_dots_count += 1
+            else:
+                age_data = get_oracle_ages(img_name_df, oracle_df, img_name)
+                oracle_count += 1
+
+            if age_data:
+                ages_writer.writerow(age_data)
+                src = os.path.join(in_dir, img_name)
+                dst = os.path.join(out_dir, f"{age_data[0]}.jpg")
+                shutil.copy(src, dst)
+        print(dfo_dots_count)
+        print(oracle_count)
+
+
+
 #
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/plaice/"
 # crop_and_isolate(herring=False)
 # DATA_DIR = "/home/stoyelq/Documents/dfobot_data/herring/enhanced/"
 # crop_and_isolate()
 # #
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_edge"
+# IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages_combined"
+
+
+
+make_combined_ages()
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages_combined/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages_combined"
 train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # wipe_ageless()
@@ -411,3 +449,4 @@ train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # create_annotation_images()
 # create_ref_line_images()
+#

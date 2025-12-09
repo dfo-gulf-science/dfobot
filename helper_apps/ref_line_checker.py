@@ -9,8 +9,8 @@ import model.solver as solver
 from model.model_utils import ClassifierModel
 
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/train"
-# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_line"
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/goodness"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_line"
+# IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/goodness"
 WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/050__2025-11-19/trained_weights.pth"
 
 DEVICE = "cuda:1"

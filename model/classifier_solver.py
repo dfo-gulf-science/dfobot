@@ -7,6 +7,9 @@ import numpy as np
 import torch
 from torch import nn, optim
 import os
+
+from torchvision.utils import save_image
+
 from model.model_utils import get_dataloaders, ClassifierModel, get_classifier_model
 import torchvision
 
@@ -203,6 +206,59 @@ class ClassifierSolver(object):
             if total_pred[classname] > 0:
                 accuracy = 100 * float(correct_count) / total_pred[classname]
                 self.print_and_log(f'Accuracy for class: {classname:5s} is {accuracy:.1f}%  ({int(correct_count)}/{total_pred[classname]})')
+
+    def get_max_min_loss(self, dataloader, num_samples, highlights_size=5):
+        """
+        Find the input images that are fit best and worst, as well as the extreme values
+
+        Inputs:
+        - dataloader: Dataloader
+        - num_samples: How many samples to check
+        Returns:
+        - Nothing, but saves the top images into a file in the log directory.
+        """
+
+        # Compute predictions in batches
+        self.model.eval()
+        num_batches = num_samples // self.batch_size
+        if num_samples % self.batch_size != 0:
+            num_batches += 1
+
+        loss_image_pairs = []
+
+        # first calculate all the losses and store in a list of tuples
+        with torch.no_grad():
+            for i in range(num_batches):
+                images, data, labels, uuids = next(iter(dataloader))
+                images, data, labels = images.to(self.device), data.to(self.device), labels.to(self.device)
+                output = self.model(images, data)
+                print(output)
+                for image_index in range(images.size(0)):
+                    #  handles duplicate uuid case, don't need it for classifier
+                    # prediction = output[:, 0][image_index]
+                    prediction = output[image_index]
+                    loss = self.criterion(prediction, labels[image_index])
+                    loss_image_pairs.append((loss.item(), images[image_index].cpu(), prediction, labels[image_index], uuids[image_index]))
+
+        # Sort by loss
+        loss_image_pairs.sort(key=lambda x: x[0])
+        lowest_losses = loss_image_pairs[:highlights_size]
+        highest_losses = loss_image_pairs[-highlights_size:]
+
+        high_dir = os.path.join(self.log_dir, 'highest_losses')
+        low_dir = os.path.join(self.log_dir, 'lowest_losses')
+        os.makedirs(high_dir, exist_ok=True)
+        os.makedirs(low_dir, exist_ok=True)
+
+        # Save images
+        for idx, (loss, img, prediction, label, uuid) in enumerate(highest_losses):
+            save_image(img, os.path.join(high_dir, f'{uuid}__{float(prediction):.2f}__{float(label):.1f}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(high_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+        for idx, (loss, img, prediction, label, uuid) in enumerate(lowest_losses):
+            save_image(img, os.path.join(low_dir, f'{uuid}__{float(prediction):.2f}__{float(label):.1f}__{loss:.4f}.png'))
+            # save_image(img, os.path.join(low_dir, f'{uuid}__{prediction:.2f}__{loss:.4f}.png'))
+
+        return
 
 
 def run_class_solver(device, config_dict=None, load_checkpoint=None, classes=None):

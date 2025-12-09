@@ -1,0 +1,13 @@
+IMAGE_FOLDER_DIR,/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/
+get_dataloaders,<function get_center_dataloaders at 0x750a252389a0>
+NUM_WORKERS,4
+CROP_SIZE,500
+VAL_CROP_SIZE,500
+LEARNING_RATE,5e-05
+BATCH_SIZE,10
+PRINT_EVERY,25
+MAX_DATA,
+NUM_EPOCHS,10
+WEIGHT_DECAY,1e-06
+ACC_SAMPLES,100
+ACC_VAL_SAMPLES,100
