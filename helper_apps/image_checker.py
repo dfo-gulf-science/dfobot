@@ -8,25 +8,27 @@ from torchvision import transforms
 import model.solver as solver
 from model.model_utils import ClassifierModel, AugmentedModel, load_model_from_log_file
 
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/dots/val/"
+IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crab/classes/val/"
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
-WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/066__2025-11-04/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/073__2025-12-10/trained_weights.pth"
 # WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/goodness/trained_weights.pth"
 # LOG_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/056__2025-11-03"
 # LOG_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/062__2025-11-04"
 DEVICE = "cuda:0"
 # labels = ["Good", "Crack", "Crystal", "Twin"]
-LABELS = ["No dot", "Dot"]
-# LABELS = ["0", "1", "2", "3", "4", "5", "6", "7"]
+
+# LABELS = ["No dot", "Dot"]
+# LABELS = ["0", "1", "2", "3"]
+LABELS = ["clean", "dirty", "muddy", "gravel/small rocks", "stones/big rocks", "no catch"]
 
 
 def get_age_from_path(path):
-    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/dots/dots.csv")
+    metadata_df = pd.read_csv("/home/stoyelq/my_hot_storage/dfobot_working/crab/classes/classes.csv")
     # make sure this function returns the label from the path
     uuid = path.split(".")[0]
     metadata_row = metadata_df[(metadata_df["uuid"] == uuid)].iloc[0]
-    result = torch.tensor([float(metadata_row["is_dot"])])
-    return result
+    result = torch.tensor([float(metadata_row["tow_type"])])
+    return LABELS[int(result)]
 
 class ImageChecker:
     def __init__(self, image_size=(300, 300)):
@@ -83,7 +85,7 @@ class ImageChecker:
             prediction = LABELS[int(torch.max(output[0], 0)[1].item())]
             # prediction = output[0][0]
 
-        real_value = get_age_from_path(img_path.split("/")[-1])[0]
+        real_value = get_age_from_path(img_path.split("/")[-1])
 
         self.real_label.config(text=f"Real Value: {real_value}")
         self.pred_label.config(text=f"Predicted Value: {prediction}")
