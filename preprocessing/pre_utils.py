@@ -124,6 +124,45 @@ def crop_and_isolate():
                 print(img_name)
                 raise Exception(e)
 
+
+def import_crab():
+    CRAB_ORIGINALS_DIR = "/home/stoyelq/Documents/crab"
+    CRAB_METADATA = "/home/stoyelq/my_hot_storage/dfobot/crab/originals.csv"
+    OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot/crab/raw/"
+    # load images
+    year_list = os.listdir(CRAB_ORIGINALS_DIR)
+    with open(CRAB_METADATA,'w') as metadata_sheet:
+        metadata_sheet_writer = csv.writer(metadata_sheet)
+        metadata_sheet_writer.writerow(["uuid", "year", "filename"])
+        for year in year_list:
+            img_list = os.listdir(os.path.join(CRAB_ORIGINALS_DIR, year))
+            count = len(img_list)
+            for img_name in img_list:
+            # for img_name in ["T-2008-815-1030(2).jpg"]:
+                try:
+                    count += -1
+                    if count % 100 == 0:
+                        print(count)
+                    img_path = os.path.join(CRAB_ORIGINALS_DIR, year,  img_name)
+                    img = cv2.imread(img_path)
+
+                    # assert img is not None, f"file {img_path} could not be read, check with os.path.exists()"
+                    if img is None:
+                        print(f"file {img_path} could not be read, check with os.path.exists()")
+                        continue
+
+                    scaled = cv2.resize(img, dsize=(500, 500))
+                    new_uuid = uuid.uuid4()
+
+                    out_path = os.path.join(OUT_DIR, f"{new_uuid}.jpg")
+                    saved = cv2.imwrite(out_path, scaled)
+                    metadata_sheet_writer.writerow([new_uuid, year, img_name])
+
+                except Exception as e:
+                    print(img_name)
+                    raise Exception(e)
+
+
 def crop_and_transform(img_path, coords, out_path):
     outdim = OUT_DIM
     # clip on threshold and convert to grayscale:
@@ -193,7 +232,7 @@ def train_val_splitter(in_dir, out_dir, split=0.9):
     for img_name in img_list:
         count += 1
         src = os.path.join(in_dir, img_name)
-        if count < TEST_TRAIN_SPLIT * len(img_list):
+        if count < split * len(img_list):
             mode = "train"
         else:
             mode = "val"
@@ -438,10 +477,10 @@ def make_combined_ages():
 # IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages_combined"
 
 
-
-make_combined_ages()
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ages_combined/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ages_combined"
+# import_crab()
+# make_combined_ages()
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crab/classes/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/crab/classed"
 train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # wipe_ageless()
