@@ -2,7 +2,7 @@ from center_solver import run_center_solver
 from model.centers.centers_dataloader import get_center_dataloaders
 
 config_dict = {
-    "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/centers/",
+    "IMAGE_FOLDER_DIR": "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/",
     "get_dataloaders": get_center_dataloaders,
     "NUM_WORKERS": 4,
     "CROP_SIZE": 500,

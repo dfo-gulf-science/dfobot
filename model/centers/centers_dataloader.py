@@ -9,8 +9,8 @@ from torchvision import transforms
 from torchvision.transforms import v2
 import torch
 
-# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/ref_edges.csv"
-METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/centers/centers.csv"
+METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/ref_edges.csv"
+# METADATA_CSV_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/centers/centers.csv"
 METADATA_COLUMNS = ['x', 'y' ]
 
 class CenterImageFolderCustom(ImageFolderCustom):
