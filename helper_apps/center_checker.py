@@ -7,9 +7,10 @@ import model.solver as solver
 from model.model_utils import ClassifierModel
 
 # IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/centers/train"
-IMAGE_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/raw"
+IMAGE_DIR = ("/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/val")
 CENTER_WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/069__2025-11-24/trained_weights.pth"
-WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/ref_edge/trained_weights.pth"
+WEIGHTS_PATH = "/home/stoyelq/my_hot_storage/dfobot_working/run_logs/077__2025-12-11/trained_weights.pth"
+# WEIGHTS_PATH = "/home/stoyelq/Desktop/work/dfobot/results/ref_edge/trained_weights.pth"
 DEVICE = "cuda:1"
 
 

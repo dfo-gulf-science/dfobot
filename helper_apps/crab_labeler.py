@@ -46,7 +46,7 @@ class ImageReviewApp:
         self.undo_button = tk.Button(self.button_frame, text="Undo (U)", width=10, command=self.undo_last)
         self.undo_button.pack(side=tk.LEFT, padx=10)
 
-        self.root.bind('<c>', lambda e: self.record_response("0")) # cleanc
+        self.root.bind('<c>', lambda e: self.record_response("0")) # clean
         self.root.bind('<d>', lambda e: self.record_response("1")) # dirty
         self.root.bind('<m>', lambda e: self.record_response("2")) # muddy
         self.root.bind('<g>', lambda e: self.record_response("3")) # gravel/small rocks

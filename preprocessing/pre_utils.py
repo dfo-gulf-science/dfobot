@@ -479,8 +479,8 @@ def make_combined_ages():
 
 # import_crab()
 # make_combined_ages()
-OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/crab/classes/"
-IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/crab/classed"
+OUT_DIR = "/home/stoyelq/my_hot_storage/dfobot_working/ref_edge/"
+IN_DIR = "/home/stoyelq/my_hot_storage/dfobot/yellowtail/ref_edge"
 train_val_splitter(IN_DIR, OUT_DIR, split=0.8)
 
 # wipe_ageless()
