@@ -10,6 +10,7 @@ import pandas as pd
 from PIL import Image
 from pathlib import Path
 from torchvision import transforms, datasets, models
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.transforms import v2
 import torch
 
@@ -171,6 +172,15 @@ def get_center_model(device):
     model_conv = ClassifierModel(2)
     model_conv.to(device)
     return model_conv
+
+def get_od_model(device, num_classes):
+    od_model = models.detection.fasterrcnn_resnet50_fpn(weights="DEFAULT")
+    # get number of input features for the classifier
+    in_features = od_model.roi_heads.box_predictor.cls_score.in_features
+    # replace the pre-trained head with a new one
+    od_model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    return od_model
+
 
 def get_augmented_model(device, all_layers):
     model_conv = AugmentedModel(all_layers)
