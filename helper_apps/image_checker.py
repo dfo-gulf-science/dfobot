@@ -73,7 +73,7 @@ class ImageChecker:
     def display_image(self):
         img_path = self.image_paths[self.index]
         pil_img = Image.open(img_path).convert("RGB")
-        display_img = pil_img.resize((300, 300))
+        display_img = pil_img.resize((600, 600))
         tk_img = ImageTk.PhotoImage(display_img)
         self.canvas.config(image=tk_img)
         self.canvas.image = tk_img

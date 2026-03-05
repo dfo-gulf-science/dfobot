@@ -40,7 +40,7 @@ test_metadata = MetadataCatalog.get("whales_test")
 import glob
 cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, "model_final.pth")
 cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set the testing threshold for this model
-cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.1
+cfg.MODEL.RETINANET.SCORE_THRESH_TEST = 0.45
 cfg.DATASETS.TEST = ("whales_test", )
 predictor = DefaultPredictor(cfg)
 
