@@ -1,4 +1,7 @@
-@article{moen-2018,
+
+
+
+@article{Moen-etal-2018,
    author = {Moen, E. and Handegard, N. O. and Allken, V. and Albert, O. T. and Harbitz, A. and Malde, K.},
    title = {Automatic interpretation of otoliths using deep learning},
    journal = {PLoS One},
@@ -22,7 +25,7 @@ Otolithic Membrane/*anatomy & histology},
    type = {Journal Article}
 }
 
-@article{polacek-2023,
+@article{Polacek-2023,
    author = {Pol\'{a}\u{c}ek, Miroslav and Arizpe, Alexis and Hüther, Patrick and Weidlich, Lisa and Steindl, Sonja and Swarts, Kelly},
    title = {Automation of tree‐ring detection and measurements using deep learning},
    journal = {Methods in Ecology and Evolution},
@@ -37,7 +40,7 @@ Otolithic Membrane/*anatomy & histology},
    type = {Journal Article}
 }
 
-@article{politikos-2021,
+@article{Politikos-atal-2021,
    author = {Politikos, Dimitris V. and Petasis, Georgios and Chatzispyrou, Archontia and Mytilineou, Chryssi and Anastasopoulou, Aikaterini},
    title = {Automating fish age estimation combining otolith images and deep learning: The role of multitask learning},
    journal = {Fisheries Research},
@@ -49,7 +52,7 @@ Otolithic Membrane/*anatomy & histology},
    type = {Journal Article}
 }
 
-@article{sigurdardottir-2023,
+@article{Sigurdardottir-2023,
    author = { Sigurðardóttir, Andrea Rakel and Sverrisson, Þór and Jónsdóttir, Aðalbjörg and Gudjónsdóttir, María and Elvarsson, Bjarki Þór and Einarsson, Hafsteinn},
    title = {Otolith age determination with a simple computer vision based few-shot learning method},
    journal = {Ecological Informatics},
@@ -77,7 +80,7 @@ Otolithic Membrane/*anatomy & histology},
     volume = {81},
     number = {1},
     pages = {55-65},
-    year = {2023},
+    year = {2024},
     month = {11},
     abstract = {Otoliths are a central information source for fish ecology and stock management, conveying important data about age and other life history for individual fish. Traditionally, interpretation of otoliths has required skilled expert readers, but recently deep learning classification and regression models have been trained to extract fish age from images of otoliths from a variety of species. Despite high accuracy in many cases, the adoption of such models in fisheries management has been slow. One reason may be that the underlying mechanisms the model uses to derive its results from the data are opaque, and this lack of legibility makes it challenging to build sufficient trust in the results. Here, we implement a deep learning model that instead of age predicts the location of annotation marks for each of the annuli. This allows an expert to evaluate the model’s performance in detail. The quality of the annotations was judged by a panel of four expert otolith readers in a double-blinded randomized survey. Using a scale from 1 to 5, the generated marks received an average quality score of 4.22, whereas expert annotations received an average score of 4.33. By counting the marks to determine fish age, we obtained an agreement between expert and model annotations of 64\% on our test set, which running the model stochastically increased to 69\%. Stochastic sampling yields further benefits, including an explicit measure of the model’s uncertainty, the post hoc likelihood of the different age classes for each otolith, and a set of alternative annotation sequences that highlight the structure of the annuli.},
     issn = {1054-3139},
@@ -87,4 +90,65 @@ Otolithic Membrane/*anatomy & histology},
 }
 
 
+@article{Martinsen-etal-2022,
+    doi = {10.1371/journal.pone.0277244},
+    author = {Martinsen, Iver AND Harbitz, Alf AND Bianchi, Filippo Maria},
+    journal = {PLOS ONE},
+    publisher = {Public Library of Science},
+    title = {Age prediction by deep learning applied to Greenland halibut (Reinhardtius hippoglossoides) otolith images},
+    year = {2022},
+    month = {11},
+    volume = {17},
+    url = {https://doi.org/10.1371/journal.pone.0277244},
+    pages = {1-20},
+    abstract = {Otoliths (ear-stones) in the inner ears of vertebrates containing visible year zones are used extensively to determine fish age. Analysis of otoliths is a time-consuming and difficult task that requires the education of human experts. Human age estimates are inconsistent, as several readings by the same human expert might result in different ages assigned to the same otolith, in addition to an inherent bias between readers. To improve efficiency and resolve inconsistent results in the age reading from otolith images by human experts, an automated procedure based on convolutional neural networks (CNNs), a class of deep learning models suitable for image processing, is investigated. We applied CNNs that perform image regression to estimate the age of Greenland halibut (Reinhardtius hippoglossoides) with good results for individual ages as well as the overall age distribution, with an average CV of about 10% relative to the read ages by experts. In addition, the density distribution of predicted ages resembles the density distribution of the ground truth. By using k*l-fold cross-validation, we test all available samples, and we show that the results are rather sensitive to the choice of test set. Finally, we apply explanation techniques to analyze the decision process of deep learning models. In particular, we produce heatmaps indicating which input features that are the most important in the computation of predicted age.},
+    number = {11},
+
+}
+
+
+@article{Benson-etal-2023,
+author = {Benson, Irina M. and Helser, Thomas E. and Marchetti, Giovanni and Barnett, Beverly K.},
+title = {The future of fish age estimation: deep machine learning coupled with Fourier transform near-infrared spectroscopy of otoliths},
+journal = {Canadian Journal of Fisheries and Aquatic Sciences},
+volume = {80},
+number = {9},
+pages = {1482-1494},
+year = {2023},
+doi = {10.1139/cjfas-2023-0045},
+URL = { https://doi.org/10.1139/cjfas-2023-0045},
+eprint = { https://doi.org/10.1139/cjfas-2023-0045},
+abstract = { Our novel approach for fish age prediction uses quantitative analysis of Fourier transform near-infrared (FT-NIR) spectra of otoliths by means of multimodal convolutional neural networks (MMCNN). We integrate two key data modalities that are related to fish ages: the entire range of wavenumbers of FT-NIR spectra and corresponding biological and geospatial data for nearly 9000 walleye pollock (Gadus chalcogrammus) specimens. The proposed model extracts informative spectral features automatically and elucidates hidden structural relationships associated with fish growth to improve age predictions. Absorbance associated with 7000 to 4000 cm−1 wavenumbers had the highest influence on model predictions followed by fish length, latitude, depth, and temperature. The optimal model resulted in good overall performance with an R2 of 0.93 and RMSE of 0.83 for training data set and R2 of 0.92 and RMSE of 0.91 for test data set. MMCNN's age predictions were comparable to microscope-based ages yielding as good or slightly better precision. Moreover, the model outperformed classical partial least squares analysis of otolith spectra and remedied prediction bias at older ages of fish. }
+}
+
+
+
+@article{Moen-etal-2023,
+title = {Age interpretation of cod otoliths using deep learning},
+journal = {Ecological Informatics},
+volume = {78},
+pages = {102325},
+year = {2023},
+issn = {1574-9541},
+doi = {https://doi.org/10.1016/j.ecoinf.2023.102325},
+url = {https://www.sciencedirect.com/science/article/pii/S1574954123003540},
+author = {Endre Moen and Rune Vabø and Szymon Smoliński and Côme Denechaud and Nils Olav Handegard and Ketil Malde},
+keywords = {Otoliths, Aging, Machine learning, Deep learning, Images},
+abstract = {Fish age estimation plays a crucial role in stock management and provides valuable information for biological studies. Fish age is typically estimated by experts that manually count annual increments in otoliths. This process is prone to age reader bias, which makes comparisons between readers and labs challenging, and requires considerable time and resources. In this study, we developed a machine learning framework for fish age prediction using 5150 images of otoliths from Barents Sea Atlantic cod (Gadus morhua) collected between 2012 and 2018. In contrast to previous studies that utilise models trained on otolith sections, we used images of broken otoliths that require no processing prior to imaging, and hence, could potentially facilitate at-sea age estimation. We trained convolutional neural networks (CNNs) based on two modern architectures (EfficientNetV1 and EfficientNetV2), which vary in model size (number of model parameters), and compared performance. Model average accuracy was 72.7% and mean-squared-error was 0.284 when compared with the human-read ages. The models' accuracy for one- and two-year-old individuals was over 90% and no systematic bias in the age predictions across age groups was detected. The best models were EfficientNet B4 and EfficientNet B6 using images taken with low exposure times. A maximum accuracy of 78.6% was achieved using an ensemble consisting of six models. Model predictions were also strongly correlated, limiting the utility of building large ensembles Model performance was compared to the results of an internal workshop where 100 independent images of broken otoliths were aged by a group of experts. Variations in percentage agreement between age classes showed a similar pattern (decreasing with age) in both CNN-based predictions and age estimates made by the expert group. While CNN-based percentage agreement was often lower than the expert estimates, it remained within or close to the range of percentage agreement observed across all readers. Our results demonstrate the potential of deep learning techniques for extracting age estimates from otolith images. When developing frameworks for age estimation using machine learning, we recommend EfficientNet B4 models are used as they are quicker to train than larger models and perform well. Ensemble approaches are also recommended if sufficient computational resources are available, as they can provide increased accuracy and lower variance of the predictions.}
+}
+
+@article{Chamberlin-etal-2026,
+author = {Chamberlin, Derek W. and Helser, Thomas E. and Brogan, John D. and Benson, Irina M. and Conner, Jason and Chin, Andrew T. and Gburski, Christopher M. and Matta, Mary Elizabeth and Pearce, Julie A. and Stone, Kali R. and TenBrink, Todd T. and Arrington, Morgan B.},
+title = {A Framework to Investigate the Effects of Observation Error on Neural Network Predictions of Fish Age},
+journal = {Fish and Fisheries},
+volume = {n/a},
+number = {n/a},
+pages = {},
+year = {2026},
+keywords = {convolutional neural network, deep machine learning, fish age, model-predicted age, near-infrared spectroscopy},
+doi = {https://doi.org/10.1111/faf.70094},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/faf.70094},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/faf.70094},
+abstract = {ABSTRACT Technological innovations for predicting fish age represent a paradigm shift from conventional age estimation methods used in fisheries science. Recently developed secondary methods rely on models trained on conventional age estimates, derived from subjective interpretation of growth patterns and a biological property of the fish to predict age. Hence, quantifying the error that propagates from these models and the conventional age estimates on which they are trained is critical to fully account for uncertainty in predicted ages used in fisheries stock assessments. We review the development of three secondary age prediction methods: image analysis, epigenetics and Fourier transform near-infrared spectroscopy (FT-NIRS); the use of artificial intelligence (AI) within each method; and present an approach to examine the effects of ageing error on AI age prediction models. As a case study, we conducted an empirical study, coupled with simulation, to quantify the effects of ageing error on the performance of a multimodal convolutional neural network (MMCNN) model used to predict eastern Bering Sea walleye pollock (Gadus chalcogrammus) ages from otoliths analysed using FT-NIRS. Results indicated repeatability of predicted ages was high between instrument operators, while adding ageing error resulted in a slight decrease in model performance from R2 = 0.92 and CV = 7.6\% to R2 = 0.87 and CV = 10.2\% on test datasets. Our results also suggest the MMCNN model is robust to noise in calibration age data and model performance may be better than performance metrics indicate when the model is evaluated against data with increased error.}
+}
 
