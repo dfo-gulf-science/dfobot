@@ -1,11 +1,12 @@
 # DFO Bot (Big Otolith Tensor?)
-Deep convolutional network for rapid automated otolith aging
+Deep convolutional network for rapid automated otolith age estimation
 
 ## Directory structure:
 
-Two main directories `preprocessing` and `model`.  Preprocessing is used to standardize and organize input images into a common format for the network, namely single otoliths cropped and then resized into a fixed resolution (e.g. 1000x1000).
+Two main directories `preprocessing` and `model`.  
+`preprocessing` is used to standardize and organize input images into a common format for the network, namely single otoliths cropped and then resized into a fixed resolution (e.g. 1000x1000).
 
-Model contains the training and validation workflows for the ML model, as well as various helpers for running the scripts and performing the hyperparameter search.  
+`model` contains the training and validation workflows for the ML model, as well as various helpers for running the scripts and performing the hyperparameter search.  
 
 ## Installation:
 On Ubuntu need to install latest nvidia drivers (or whatever is suitable for the graphics card): `sudo apt install nvidia-driver-???` and a `pip install -r requirements.txt`
@@ -22,6 +23,7 @@ Moen, E., et al. (2018). "Automatic interpretation of otoliths using deep learni
 Sigurðardóttir, A. R., et al. (2023). "Otolith age determination with a simple computer vision based few-shot learning method." Ecological Informatics 76.
 
 Politikos, D. V., et al. (2021). "Automating fish age estimation combining otolith images and deep learning: The role of multitask learning." Fisheries Research 242.
+
 
 ## Model:
 The current model structure consists of a pretrained version of ResNet50 with a single output instead of 1000 classes and uses an MSE loss.
